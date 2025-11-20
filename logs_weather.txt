@@ -1,0 +1,5 @@
+Starting Weather Adapter on port 5002...
+ * Serving Flask app 'weather_adapter'
+ * Debug mode: on
+Address already in use
+Port 5002 is in use by another program. Either identify and stop that program, or start the server with a different port.
