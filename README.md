@@ -14,7 +14,7 @@ The project follows a 4-layer architecture:
 
 ### Prerequisites
 - Python 3.x
-- `flask`, `requests` (Install via `pip install flask requests`)
+- `flask`, `requests`, `python-dotenv` (Install via `pip install -r requirements.txt`)
 
 ### Quick Start
 Run the startup script to launch all services:
@@ -46,7 +46,7 @@ Access the dashboard at: `http://localhost:5000`
 - `POST /optimize_energy`: Get energy advice based on indoor/outdoor temp.
 
 ## Configuration
-Set the following environment variables to use real APIs:
+Create a `.env` file based on `.env.example` and set the following variables:
 - `OWM_API_KEY`: OpenWeatherMap API Key.
 - `TELEGRAM_TOKEN`: Telegram Bot Token.
 - `TELEGRAM_CHAT_ID`: Target Chat ID.

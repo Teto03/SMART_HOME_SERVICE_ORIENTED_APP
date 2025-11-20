@@ -1,13 +1,8 @@
 #!/bin/bash
 echo "Starting all services..."
 
-# --- TELEGRAM CONFIGURATION ---
-# Replace with your actual token and chat ID
-export TELEGRAM_TOKEN="8534332339:AAEvSTwWSe5MTdFvY4cMsQyd8Kh28PsN_9U"
-export TELEGRAM_CHAT_ID="8124902208"
-# Replace with your OpenWeatherMap API Key (optional)
-export OWM_API_KEY="e7c09dd6eaba4bd292958f2fbcff734b"
-# ------------------------------
+# Secrets are loaded from .env file by the Python services
+# Ensure you have created a .env file based on .env.example
 
 # 1. Data Layer
 ./venv/bin/python3 1_data_layer/device_service.py > logs_device.txt 2>&1 &

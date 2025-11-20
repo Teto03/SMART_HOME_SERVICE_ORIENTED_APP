@@ -137,15 +137,19 @@ Per ricevere notifiche dal tuo SmartHome IoT Simulator, devi creare un Bot Teleg
    * Salva questo ID. Lo userai come variabile d'ambiente `TELEGRAM_CHAT_ID`.
 
 ### 3. Configurare il Simulatore
-1. Apri il file `start_all.sh`.
-2. Trova la sezione **TELEGRAM CONFIGURATION** in alto.
-3. Sostituisci `MOCK_TOKEN` con il tuo Bot Token reale.
-4. Sostituisci `123456789` con il tuo Chat ID reale.
-5. Salva il file.
+1. Copia il file di esempio `.env.example` in un nuovo file chiamato `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Apri il file `.env` con un editor di testo.
+3. Inserisci il tuo **Token** e **Chat ID** nelle variabili corrispondenti:
+   ```ini
+   TELEGRAM_TOKEN=123456789:ABCdefGhI...
+   TELEGRAM_CHAT_ID=987654321
+   ```
+4. Salva il file.
 
-```bash
-./start_all.sh
-```
+Riavvia il sistema con `./start_all.sh` per applicare le modifiche.
 
 Ora, quando il sistema rileva un'anomalia (come l'apertura di una finestra), riceverai un messaggio su Telegram!
 
@@ -161,14 +165,14 @@ Per ottenere dati meteo in tempo reale per il tuo SmartHome IoT Simulator, puoi 
 3. Copia la chiave API generata (sembra una lunga stringa di caratteri casuali).
 
 ### 2. Configurare il Simulatore
-1. Apri il file `start_all.sh` in questa directory.
-2. Trova la riga:
+1. Se non l'hai già fatto, crea il file `.env` copiando l'esempio:
    ```bash
-   export OWM_API_KEY="MOCK_KEY"
+   cp .env.example .env
    ```
-3. Sostituisci `MOCK_KEY` con la tua chiave API reale.
-   ```bash
-   export OWM_API_KEY="your_actual_api_key_here"
+2. Apri il file `.env`.
+3. Inserisci la tua chiave API nella variabile `OWM_API_KEY`:
+   ```ini
+   OWM_API_KEY=e7c09dd6eaba4bd292958f2fbcff734b
    ```
 4. Salva il file.
 
@@ -183,5 +187,5 @@ Esegui di nuovo `./start_all.sh`. La dashboard mostrerà ora dati meteo reali pe
 2. **Avviare**: `./start_all.sh`
 3. **Accedere**: http://localhost:5000
 4. **Fermare**: Premi Enter nel terminale di avvio
-5. **Configurare Telegram**: Modifica `start_all.sh` con token e chat ID
-6. **Configurare Meteo**: Modifica `start_all.sh` con la chiave API OpenWeatherMap
+5. **Configurare Segreti**: Crea `.env` da `.env.example` e inserisci le chiavi.
+6. **Configurare Meteo/Telegram**: Modifica `.env` con le tue chiavi.
