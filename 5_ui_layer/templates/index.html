@@ -107,62 +107,78 @@
             </div>
         </div>
 
+        <!-- Season Mode Selector -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card text-white bg-secondary mb-3">
+                    <div class="card-header">System Settings</div>
+                    <div class="card-body">
+                        <h5 class="card-title">Season Mode</h5>
+                        <select id="seasonMode" class="form-select" onchange="updateSettings()">
+                            <option value="auto">Auto (Based on Temp)</option>
+                            <option value="summer">Summer (Cooling Focus)</option>
+                            <option value="winter">Winter (Heating Focus)</option>
+                            <option value="mild">Mild (Ventilation Focus)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="row mt-4">
             <div class="col-md-12 text-center">
                 <button class="btn btn-primary btn-lg" onclick="refreshAll()">Refresh Data</button>
-            </div>
-        </div>
-    </div>
+                <script>
+                    // Update settings when season mode changes
+                    async function updateSettings() {
+                        const mode = document.getElementById('seasonMode').value;
+                        try {
+                            await fetch('/settings', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ season_mode: mode })
+                            });
+                            fetchData(); // Refresh status immediately
+                        } catch (error) {
+                            console.error('Error updating settings:', error);
+                        }
+                    }
 
-    <script>
-        async function refreshAll() {
-            const btn = document.querySelector('button[onclick="refreshAll()"]');
-            const originalText = btn.innerText;
-            btn.innerText = "Refreshing...";
-            btn.disabled = true;
+                    async function fetchDevices() {
+                        try {
+                            const response = await fetch('/api/devices');
+                            const devices = await response.json();
+                            const listContainer = document.getElementById('device-list');
+                            listContainer.innerHTML = '';
 
-            await fetchData();
-            await fetchDevices();
+                            devices.forEach(device => {
+                                let controls = '';
+                                let statusColor = device.status === 'active' ? 'text-success' : 'text-muted';
 
-            btn.innerText = originalText;
-            btn.disabled = false;
-        }
-
-        async function fetchDevices() {
-            try {
-                const response = await fetch('/api/devices');
-                const devices = await response.json();
-                const listContainer = document.getElementById('device-list');
-                listContainer.innerHTML = '';
-
-                devices.forEach(device => {
-                    let controls = '';
-                    let statusColor = device.status === 'active' ? 'text-success' : 'text-muted';
-
-                    if (device.type === 'window') {
-                        const isOpen = device.status === 'OPEN';
-                        statusColor = isOpen ? 'text-danger' : 'text-success';
-                        controls = `
+                                if (device.type === 'window') {
+                                    const isOpen = device.status === 'OPEN';
+                                    statusColor = isOpen ? 'text-danger' : 'text-success';
+                                    controls = `
                             <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'OPEN')">Open</button>
                             <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'CLOSE')">Close</button>
                         `;
-                    } else if (device.type === 'heater') {
-                        const isOn = device.status === 'ON';
-                        statusColor = isOn ? 'text-danger' : 'text-muted';
-                        controls = `
+                                } else if (device.type === 'heater') {
+                                    const isOn = device.status === 'ON';
+                                    statusColor = isOn ? 'text-danger' : 'text-muted';
+                                    controls = `
                             <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'ON')">Turn On</button>
                             <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'OFF')">Turn Off</button>
                         `;
-                    } else if (device.type === 'ac') {
-                        const isOn = device.status === 'ON';
-                        statusColor = isOn ? 'text-info' : 'text-muted';
-                        controls = `
+                                } else if (device.type === 'ac') {
+                                    const isOn = device.status === 'ON';
+                                    statusColor = isOn ? 'text-info' : 'text-muted';
+                                    controls = `
                             <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'ON')">Turn On</button>
                             <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'OFF')">Turn Off</button>
                         `;
-                    }
+                                }
 
-                    const cardHtml = `
+                                const cardHtml = `
                         <div class="col-md-4 mb-3">
                             <div class="card h-100">
                                 <div class="card-body">
@@ -176,103 +192,158 @@
                             </div>
                         </div>
                     `;
-                    listContainer.innerHTML += cardHtml;
-                });
-            } catch (error) {
-                console.error('Error fetching devices:', error);
-            }
-        }
-
-        async function sendCommand(deviceId, command) {
-            try {
-                const res = await fetch('/api/devices/command', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ device_id: deviceId, command: command })
-                });
-                if (res.ok) {
-                    // Refresh list to show new status
-                    fetchDevices();
-                } else {
-                    alert("Failed to send command");
-                }
-            } catch (e) {
-                alert("Error sending command: " + e);
-            }
-        }
-
-        async function fetchData() {
-            try {
-                let cityInput = document.getElementById('city-input');
-                let city = cityInput.value;
-
-                if (!city) {
-                    city = localStorage.getItem('selected_city') || 'Milan';
-                    cityInput.value = city;
-                } else {
-                    localStorage.setItem('selected_city', city);
-                }
-
-                const response = await fetch(`/api/data?city=${city}`);
-                const data = await response.json();
-
-                // Update System Status
-                const statusBadge = document.getElementById('system-status');
-                statusBadge.textContent = "System: " + data.system_status;
-                statusBadge.className = data.system_status === 'online' ? 'badge bg-success' : 'badge bg-danger';
-
-                // Update Indoor
-                if (data.data.indoor_temp !== undefined) {
-                    document.getElementById('indoor-temp').textContent = data.data.indoor_temp + " °C";
-                    const date = new Date(data.data.last_update * 1000);
-                    document.getElementById('last-update').textContent = "Last update: " + date.toLocaleTimeString();
-                }
-
-                // Update Outdoor
-                if (data.data.outdoor_temp !== undefined) {
-                    document.getElementById('outdoor-temp').textContent = data.data.outdoor_temp + " °C";
-                    document.getElementById('weather-condition').textContent = data.data.weather_condition;
-                }
-
-                // Update Advice & Efficiency
-                if (data.advice) {
-                    let adviceHtml = `<strong>${data.advice}</strong>`;
-
-                    if (data.efficiency_score !== undefined) {
-                        let color = data.efficiency_score >= 7 ? 'text-success' : (data.efficiency_score >= 4 ? 'text-warning' : 'text-danger');
-                        adviceHtml += `<br><span class="${color}">Efficiency Score: ${data.efficiency_score}/10</span>`;
+                                listContainer.innerHTML += cardHtml;
+                            });
+                        } catch (error) {
+                            console.error('Error fetching devices:', error);
+                        }
                     }
 
-                    if (data.energy_details && data.energy_details.length > 0) {
-                        adviceHtml += `<ul class="mt-2 text-start small text-muted">`;
-                        data.energy_details.forEach(detail => {
-                            adviceHtml += `<li>${detail}</li>`;
-                        });
-                        adviceHtml += `</ul>`;
+                    async function sendCommand(deviceId, command) {
+                        try {
+                            const res = await fetch('/api/devices/command', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ device_id: deviceId, command: command })
+                            });
+                            if (res.ok) {
+                                // Refresh list to show new status
+                                fetchDevices();
+                                // Also refresh data to update advice immediately
+                                setTimeout(fetchData, 500);
+                            } else {
+                                alert("Failed to send command");
+                            }
+                        } catch (e) {
+                            alert("Error sending command: " + e);
+                        }
                     }
 
-                    document.getElementById('advice-text').innerHTML = adviceHtml;
+                    async function fetchData() {
+                        try {
+                            let cityInput = document.getElementById('city-input');
+                            let city = cityInput.value;
 
-                    const alertBox = document.getElementById('action-alert');
-                    if (data.action_required) {
-                        alertBox.classList.remove('d-none');
-                    } else {
-                        alertBox.classList.add('d-none');
+                            if (!city) {
+                                city = localStorage.getItem('selected_city') || 'Milan';
+                                cityInput.value = city;
+                            } else {
+                                localStorage.setItem('selected_city', city);
+                            }
+
+                            const response = await fetch(`/api/data?city=${city}`);
+                            const data = await response.json();
+
+                            // Update Season Mode Selector
+                            if (data.season_mode) {
+                                document.getElementById('seasonMode').value = data.season_mode;
+                            }
+
+                            // Update System Status
+                            const statusBadge = document.getElementById('system-status');
+                            if (statusBadge) {
+                                statusBadge.textContent = "System: " + data.system_status;
+                                statusBadge.className = data.system_status === 'online' ? 'badge bg-success' : 'badge bg-danger';
+                            }
+
+                            // Update Advice
+                            const adviceBox = document.getElementById('advice-box');
+                            if (adviceBox) {
+                                adviceBox.textContent = data.advice || "No advice available.";
+                                adviceBox.className = data.action_required ? 'alert alert-warning' : 'alert alert-success';
+                            }
+
+                            // Update Energy Details
+                            const detailsDiv = document.getElementById('energy-details');
+                            if (detailsDiv && data.energy_details) {
+                                detailsDiv.innerHTML = '<ul>' + data.energy_details.map(d => `<li>${d}</li>`).join('') + '</ul>';
+                            }
+
+                            // Update Indoor
+                            if (data.data.indoor_temp !== undefined) {
+                                document.getElementById('indoor-temp').textContent = data.data.indoor_temp + " °C";
+                            }
+
+                            // Update Outdoor
+                            if (data.data.outdoor_temp !== undefined) {
+                                document.getElementById('outdoor-temp').textContent = data.data.outdoor_temp + " °C";
+                                document.getElementById('weather-condition').textContent = data.data.weather_condition;
+                            }
+
+                            // Update Alerts
+                            const alertsList = document.getElementById('alerts-list');
+                            if (alertsList) {
+                                alertsList.innerHTML = '';
+                                if (data.alerts && data.alerts.length > 0) {
+                                    data.alerts.forEach(alert => {
+                                        const li = document.createElement('li');
+                                        li.className = 'list-group-item list-group-item-danger';
+                                        li.textContent = alert;
+                                        alertsList.appendChild(li);
+                                    });
+                                }
+                            }
+
+                            // Update Last Update
+                            if (data.data.last_update) {
+                                const date = new Date(data.data.last_update * 1000);
+                                const lastUpdate = document.getElementById('last-update');
+                                if (lastUpdate) {
+                                    lastUpdate.textContent = "Last update: " + date.toLocaleTimeString();
+                                }
+                            }
+
+                            // Update Advice & Efficiency
+                            if (data.advice) {
+                                let adviceHtml = `<strong>${data.advice}</strong>`;
+
+                                if (data.efficiency_score !== undefined) {
+                                    let color = data.efficiency_score >= 7 ? 'text-success' : (data.efficiency_score >= 4 ? 'text-warning' : 'text-danger');
+                                    adviceHtml += `<br><span class="${color}">Efficiency Score: ${data.efficiency_score}/10</span>`;
+                                }
+
+                                if (data.energy_details && data.energy_details.length > 0) {
+                                    adviceHtml += `<ul class="mt-2 text-start small text-muted">`;
+                                    data.energy_details.forEach(detail => {
+                                        adviceHtml += `<li>${detail}</li>`;
+                                    });
+                                    adviceHtml += `</ul>`;
+                                }
+
+                                document.getElementById('advice-text').innerHTML = adviceHtml;
+
+                                const alertBox = document.getElementById('action-alert');
+                                if (alertBox) {
+                                    if (data.action_required) {
+                                        alertBox.classList.remove('d-none');
+                                    } else {
+                                        alertBox.classList.add('d-none');
+                                    }
+                                }
+                            }
+
+                        } catch (error) {
+                            console.error('Error fetching data:', error);
+                            const statusBadge = document.getElementById('system-status');
+                            if (statusBadge) {
+                                statusBadge.textContent = "Error connecting to server";
+                                statusBadge.className = 'badge bg-danger';
+                            }
+                        }
                     }
-                }
 
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                document.getElementById('system-status').textContent = "Error connecting to server";
-                document.getElementById('system-status').className = 'badge bg-danger';
-            }
-        }
+                    function refreshAll() {
+                        fetchData();
+                        fetchDevices();
+                    }
 
-        // Auto-refresh every 5 seconds
-        setInterval(refreshAll, 5000);
-        // Initial fetch
-        refreshAll();
-    </script>
+                    // Initial Load
+                    document.addEventListener('DOMContentLoaded', () => {
+                        refreshAll();
+                        // Auto refresh every 5 seconds
+                        setInterval(refreshAll, 5000);
+                    });
+                </script>
 </body>
 
 </html>

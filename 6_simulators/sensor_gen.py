@@ -8,16 +8,20 @@ DATA_SERVICE_URL = "http://localhost:5001"
 def simulate_sensor(device_id, device_type, min_val, max_val):
     print(f"Starting simulation for {device_id} ({device_type})...")
     
-    # Register device first
-    try:
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={
-            "device_id": device_id,
-            "type": device_type,
-            "status": "active"
-        })
-    except requests.exceptions.ConnectionError:
-        print("Data Service not reachable. Retrying...")
-        return
+    # Register device first - retry until successful
+    registered = False
+    while not registered:
+        try:
+            requests.post(f"{DATA_SERVICE_URL}/devices", json={
+                "device_id": device_id,
+                "type": device_type,
+                "status": "active"
+            }, timeout=2)
+            registered = True
+            print(f"Registered {device_id}")
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            print(f"Data Service not reachable for {device_id}. Retrying in 2s...")
+            time.sleep(2)
 
     while True:
         value = round(random.uniform(min_val, max_val), 2)
@@ -36,7 +40,7 @@ def simulate_sensor(device_id, device_type, min_val, max_val):
         except Exception as e:
             print(f"Connection error: {e}")
             
-        time.sleep(5)
+        time.sleep(60)
 
 if __name__ == "__main__":
     # Run simulations in separate threads

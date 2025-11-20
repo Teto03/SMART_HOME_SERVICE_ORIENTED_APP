@@ -8,6 +8,17 @@ DATA_SERVICE_URL = "http://localhost:5001"
 ADAPTER_SERVICE_URL = "http://localhost:5002"
 BUSINESS_SERVICE_URL = "http://localhost:5006"
 
+# Global settings
+current_season_mode = "auto"
+
+@app.route('/settings', methods=['POST'])
+def update_settings():
+    global current_season_mode
+    data = request.json
+    if 'season_mode' in data:
+        current_season_mode = data['season_mode']
+    return jsonify({"status": "updated", "season_mode": current_season_mode})
+
 @app.route('/api/home_status', methods=['GET'])
 def get_home_status():
     city = request.args.get('city', 'Milan')
@@ -98,7 +109,8 @@ def get_home_status():
                 "outdoor_temp": outdoor_temp,
                 "window_states": window_states,
                 "boiler_status": boiler_status,
-                "ac_status": ac_status
+                "ac_status": ac_status,
+                "season_mode": current_season_mode # Pass season_mode to the optimizer
             }
             res = requests.post(f"{BUSINESS_SERVICE_URL}/optimize_energy", json=payload)
             if res.status_code == 200:

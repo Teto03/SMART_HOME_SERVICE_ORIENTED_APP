@@ -9,126 +9,162 @@ TELEGRAM_ADAPTER_URL = "http://localhost:5005"
 
 # State tracking
 last_alert_state = {
-    "living_room_window": None,
-    "bedroom_window": None,
-    "kitchen_window": None,
-    "boiler": None,
-    "ac": None,
-    "anomaly": None
+    "temp": None,
+    "anomaly": None,
+    "living_room_window": "CLOSED",
+    "bedroom_window": "CLOSED",
+    "kitchen_window": "CLOSED",
+    "smart_heater_1": "OFF",
+    "main_heater": "OFF",
+    "ac": "OFF"
 }
 
 def monitor_loop():
-    print("Starting Alert Monitor Loop...")
-    print(f"Monitoring boiler and window status every 1 second...")
+    global last_alert_state
+    print("Alert Process Started...")
+    
     while True:
         try:
-            # 1. Get latest data
-            res = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=temp_sensor_01")
-            if res.status_code == 200:
-                data = res.json()
-                value = data.get("value")
-                
-                # 2. Check for anomalies
-                payload = {"device_type": "temperature", "value": value}
-                res_analytics = requests.post(f"{ANALYTICS_SERVICE_URL}/analyze", json=payload)
-                
-                if res_analytics.status_code == 200:
-                    analytics_data = res_analytics.json()
-                    if analytics_data.get("has_anomalies"):
-                        anomalies = analytics_data.get("anomalies", [])
-                        current_anomaly = str(anomalies)
-                        
-                        # Only alert if anomaly is new or different
-                        if last_alert_state["anomaly"] != current_anomaly:
-                            for anomaly in anomalies:
-                                print(f"ANOMALY DETECTED: {anomaly}")
-                                requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
-                                    "message": f"ALERT: {anomaly} (Value: {value})"
-                                })
-                            last_alert_state["anomaly"] = current_anomaly
-                    else:
-                        last_alert_state["anomaly"] = None
-            
-            # 4. Check All Windows Status
-            windows = ["living_room_window", "bedroom_window", "kitchen_window"]
-            for window_id in windows:
-                try:
-                    res_window = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id={window_id}")
-                    if res_window.status_code == 200:
-                        win_data = res_window.json()
-                        # Check for OPEN status
-                        is_open = win_data.get("value") == 1.0 or win_data.get("status") == "OPEN"
-                        
-                        if is_open and last_alert_state[window_id] != "OPEN":
-                            window_name = window_id.replace("_", " ").title()
-                            print(f"ALERT: {window_name} is OPEN!")
+            # 1. Check Temperature (Sensor)
+            try:
+                res = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=temp_sensor_01")
+                if res.status_code == 200:
+                    data = res.json()
+                    temp = data.get("value")
+                    
+                    if temp is not None:
+                        # High Temp Alert
+                        if temp > 28.0 and last_alert_state["temp"] != "HIGH":
+                            print(f"ALERT: High Temperature detected: {temp} C")
                             requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
-                                "message": f"SECURITY ALERT: {window_name} is OPEN!"
+                                "message": f"ALERT: High Temperature detected: {temp:.1f} C"
                             })
-                            last_alert_state[window_id] = "OPEN"
-                        elif not is_open:
-                            last_alert_state[window_id] = "CLOSED"
-                except Exception as e:
-                    print(f"Error checking {window_id}: {e}")
+                            last_alert_state["temp"] = "HIGH"
+                        elif temp < 28.0 and last_alert_state["temp"] == "HIGH":
+                            last_alert_state["temp"] = "NORMAL"
+            except Exception as e:
+                print(f"Error checking temp: {e}")
 
-            # 5. Check Boiler Status
-            res_boiler = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=smart_heater_1")
-            if res_boiler.status_code == 200:
-                boiler_data = res_boiler.json()
-                val = boiler_data.get("value")
-                status = boiler_data.get("status")
-                
-                is_on = (val == 1.0) or (status == "ON")
-                
-                # Debug logging for state tracking
-                current_state = "ON" if is_on else "OFF"
-                print(f"[BOILER] Current: {current_state}, Last: {last_alert_state['boiler']}, Value: {val}, Status: {status}")
-                
-                if is_on and last_alert_state["boiler"] != "ON":
-                     print(f"[BOILER] STATE CHANGE DETECTED: {last_alert_state['boiler']} -> ON")
-                     print("ALERT: Boiler is ON!")
-                     requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
-                        "message": "ENERGY ALERT: Boiler is ON!"
-                    })
-                     last_alert_state["boiler"] = "ON"
-                elif not is_on and last_alert_state["boiler"] != "OFF":
-                    print(f"[BOILER] STATE CHANGE DETECTED: {last_alert_state['boiler']} -> OFF")
-                    last_alert_state["boiler"] = "OFF"
+            # 2. Dynamic Device Monitoring
+            try:
+                # Fetch all devices
+                res_devices = requests.get(f"{DATA_SERVICE_URL}/devices")
+                if res_devices.status_code == 200:
+                    devices = res_devices.json()
+                    
+                    for device in devices:
+                        dev_id = device.get("id")
+                        dev_type = device.get("type")
+                        
+                        # Skip sensors, only monitor actuators
+                        if dev_type == "temperature":
+                            continue
+                            
+                        # Get latest reading/status
+                        try:
+                            res_reading = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id={dev_id}")
+                            if res_reading.status_code == 200:
+                                reading_data = res_reading.json()
+                                val = reading_data.get("value")
+                                status_str = reading_data.get("status")
+                                
+                                # Determine logical state (ON/OPEN vs OFF/CLOSED)
+                                is_active = False
+                                active_label = "ON"
+                                inactive_label = "OFF"
+                                
+                                if dev_type == "window":
+                                    is_active = (val == 1.0) or (status_str == "OPEN")
+                                    active_label = "OPEN"
+                                    inactive_label = "CLOSED"
+                                elif dev_type in ["heater", "ac"]:
+                                    is_active = (val == 1.0) or (status_str == "ON")
+                                    active_label = "ON"
+                                    inactive_label = "OFF"
+                                
+                                # Check for state change
+                                last_state = last_alert_state.get(dev_id)
+                                
+                                # Initialize if unknown (assume inactive to avoid startup spam, or fetch current)
+                                if last_state is None:
+                                    last_alert_state[dev_id] = active_label if is_active else inactive_label
+                                    continue # Skip notification on first run
+                                
+                                current_label = active_label if is_active else inactive_label
+                                
+                                if current_label != last_state:
+                                    print(f"[{dev_id}] STATE CHANGE: {last_state} -> {current_label}")
+                                    
+                                    # Build Message
+                                    dev_name = dev_id.replace("_", " ").title()
+                                    msg = ""
+                                    
+                                    if is_active:
+                                        if dev_type == "window":
+                                            msg = f"SECURITY ALERT: {dev_name} is {active_label}!"
+                                        else:
+                                            msg = f"ENERGY ALERT: {dev_name} is {active_label}!"
+                                    else:
+                                        msg = f"INFO: {dev_name} is now {inactive_label}."
+                                    
+                                    requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={"message": msg})
+                                    last_alert_state[dev_id] = current_label
+
+                        except Exception as e:
+                            print(f"Error checking device {dev_id}: {e}")
+                            
+            except Exception as e:
+                print(f"Error fetching devices list: {e}")
+
+            # 3. Complex Logic (AC + Boiler Conflict) - Keep this specific check
+            # ... (Logic for specific conflict check can remain or be adapted)
+            # For now, let's keep the conflict check simple by querying specific devices if needed, 
+            # or relying on the state we just updated.
             
-            # 6. Check AC Status
-            res_ac = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=air_conditioner")
-            if res_ac.status_code == 200:
-                ac_data = res_ac.json()
-                val = ac_data.get("value")
-                status = ac_data.get("status")
-                
-                is_on = (val == 1.0) or (status == "ON")
-                
-                if is_on and last_alert_state["ac"] != "ON":
-                     print("ALERT: AC is ON!")
-                     requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
-                        "message": "ENERGY ALERT: Air Conditioner is ON!"
-                    })
-                     last_alert_state["ac"] = "ON"
-                elif not is_on and last_alert_state["ac"] != "OFF":
-                    last_alert_state["ac"] = "OFF"
+            # Let's re-implement the conflict check using the updated last_alert_state
+            ac_on = last_alert_state.get("air_conditioner") == "ON"
+            # Check if ANY heater is ON
+            heater_on = False
+            for key, val in last_alert_state.items():
+                if "heater" in key and val == "ON":
+                    heater_on = True
+                    break
             
-            # 7. Check for critical wastage: AC + Boiler both ON
-            if last_alert_state["boiler"] == "ON" and last_alert_state["ac"] == "ON":
-                # Only alert once when this state is first detected
-                if not last_alert_state.get("ac_boiler_conflict"):
-                    print("CRITICAL ALERT: AC and Boiler both ON!")
-                    requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
-                        "message": "⚠️ CRITICAL ENERGY WASTE: AC and Boiler are BOTH ON! Turn one off immediately!"
+            if ac_on and heater_on:
+                 if last_alert_state.get("anomaly") != "CONFLICT":
+                     print("CRITICAL: AC and HEATER are BOTH ON!")
+                     requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
+                        "message": "CRITICAL ENERGY WASTE: Air Conditioner and Heater are BOTH ON! Please turn one off."
                     })
-                    last_alert_state["ac_boiler_conflict"] = True
+                     last_alert_state["anomaly"] = "CONFLICT"
+            elif (not ac_on or not heater_on) and last_alert_state.get("anomaly") == "CONFLICT":
+                 last_alert_state["anomaly"] = None
+
+            # 8. Check Energy Waste (Windows Open + HVAC On)
+            # Identify open windows
+            open_windows = [k for k, v in last_alert_state.items() if "window" in k and v == "OPEN"]
+            # Identify active HVAC (Heaters or AC)
+            active_hvac = [k for k, v in last_alert_state.items() if k in ["smart_heater_1", "main_heater", "air_conditioner"] and v == "ON"]
+            
+            if open_windows and active_hvac:
+                if last_alert_state.get("waste_alert") != "ACTIVE":
+                    hvac_names = ", ".join([d.replace("_", " ").title() for d in active_hvac])
+                    win_names = ", ".join([w.replace("_", " ").title() for w in open_windows])
+                    msg = f"⚠️ ENERGY WASTE: {hvac_names} is ON while {win_names} is OPEN!"
+                    print(f"ALERT: {msg}")
+                    requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={"message": msg})
+                    last_alert_state["waste_alert"] = "ACTIVE"
             else:
-                last_alert_state["ac_boiler_conflict"] = False
-
+                if last_alert_state.get("waste_alert") == "ACTIVE":
+                    print("INFO: Energy waste condition resolved.")
+                    requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
+                        "message": "✅ Energy waste condition resolved."
+                    })
+                    last_alert_state["waste_alert"] = "CLEARED"
 
         except Exception as e:
             print(f"Error in monitor loop: {e}")
-            
+        
         time.sleep(1)  # Check every 1 second for faster alerts
 
 if __name__ == '__main__':

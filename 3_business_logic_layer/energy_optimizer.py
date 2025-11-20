@@ -12,6 +12,7 @@ def optimize_energy():
     window_states = data.get('window_states', {})  # Dict of window_id: status
     boiler_status = data.get('boiler_status', 'UNKNOWN')
     ac_status = data.get('ac_status', 'UNKNOWN')
+    season_mode = data.get('season_mode', 'auto')  # auto, summer, winter, mild
     
     if indoor_temp is None or outdoor_temp is None:
         return jsonify({"error": "Missing temperature data"}), 400
@@ -31,9 +32,22 @@ def optimize_energy():
     should_act = False
     
     # Season detection
-    is_summer = outdoor_temp > 25
-    is_winter = outdoor_temp < 15
-    is_mild = 15 <= outdoor_temp <= 25
+    if season_mode == 'summer':
+        is_summer = True
+        is_winter = False
+        is_mild = False
+    elif season_mode == 'winter':
+        is_summer = False
+        is_winter = True
+        is_mild = False
+    elif season_mode == 'mild':
+        is_summer = False
+        is_winter = False
+        is_mild = True
+    else: # auto
+        is_summer = outdoor_temp > 25
+        is_winter = outdoor_temp < 15
+        is_mild = 15 <= outdoor_temp <= 25
     
     # ============================================
     # CRITICAL WASTAGE SCENARIOS (Efficiency: 0)

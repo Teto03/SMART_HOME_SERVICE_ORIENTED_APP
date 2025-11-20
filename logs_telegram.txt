@@ -9,4 +9,28 @@ Starting Telegram Adapter on port 5005...
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 136-438-214
-127.0.0.1 - - [20/Nov/2025 18:07:14] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:28] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:34] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:34] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:39] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:43] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:46] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:51] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:51] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:54] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:56] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:58] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:06:59] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:00] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:00] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:03] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:16] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:23] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:23] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:27] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:27] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:07:28] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:08:22] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:08:25] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:08:28] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 19:08:37] "POST /send_message HTTP/1.1" 200 -
