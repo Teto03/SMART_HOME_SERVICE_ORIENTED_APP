@@ -8,4 +8,4 @@ Starting Analytics Service on port 5003...
 [33mPress CTRL+C to quit[0m
  * Restarting with stat
  * Debugger is active!
- * Debugger PIN: 136-438-214
+ * Debugger PIN: 669-250-998
