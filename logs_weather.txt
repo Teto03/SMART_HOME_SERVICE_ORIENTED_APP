@@ -9,8 +9,30 @@ Starting Weather Adapter on port 5002...
  * Restarting with stat
  * Debugger is active!
  * Debugger PIN: 335-614-201
-127.0.0.1 - - [20/Nov/2025 15:55:37] "GET /current_weather?city=Milan HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 15:55:42] "GET /current_weather?city=Milan HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 15:55:48] "GET /current_weather?city=Milan HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 15:55:53] "GET /current_weather?city=Milan HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 15:55:58] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:23] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:28] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:33] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:36] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:38] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:40] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:41] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:43] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:44] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:47] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:48] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:53] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:58] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:12:58] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:03] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:04] "GET /current_weather?city=London HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:08] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:13] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:19] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:24] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:29] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:31] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:36] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:41] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:47] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:52] "GET /current_weather?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:13:57] "GET /current_weather?city=Milan HTTP/1.1" 200 -

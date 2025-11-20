@@ -14,7 +14,8 @@ def index():
 def get_data():
     # Proxy request to Process Layer
     try:
-        res = requests.get(DASHBOARD_PROCESS_URL)
+        city = request.args.get('city', 'Milan')
+        res = requests.get(f"{DASHBOARD_PROCESS_URL}?city={city}")
         if res.status_code == 200:
             return jsonify(res.json())
         else:

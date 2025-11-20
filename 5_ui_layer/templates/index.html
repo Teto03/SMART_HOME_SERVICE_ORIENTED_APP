@@ -58,6 +58,20 @@
                     <div class="card-body">
                         <h2 class="card-title" id="outdoor-temp">-- °C</h2>
                         <p class="card-text" id="weather-condition">--</p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="city-input" class="form-control" placeholder="Enter city"
+                                list="city-list">
+                            <datalist id="city-list">
+                                <option value="Milan">
+                                <option value="Rome">
+                                <option value="London">
+                                <option value="New York">
+                                <option value="Paris">
+                                <option value="Tokyo">
+                            </datalist>
+                            <button class="btn btn-outline-secondary" type="button"
+                                onclick="refreshAll()">Update</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -102,8 +116,16 @@
 
     <script>
         async function refreshAll() {
+            const btn = document.querySelector('button[onclick="refreshAll()"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Refreshing...";
+            btn.disabled = true;
+
             await fetchData();
             await fetchDevices();
+
+            btn.innerText = originalText;
+            btn.disabled = false;
         }
 
         async function fetchDevices() {
@@ -174,7 +196,17 @@
 
         async function fetchData() {
             try {
-                const response = await fetch('/api/data');
+                let cityInput = document.getElementById('city-input');
+                let city = cityInput.value;
+
+                if (!city) {
+                    city = localStorage.getItem('selected_city') || 'Milan';
+                    cityInput.value = city;
+                } else {
+                    localStorage.setItem('selected_city', city);
+                }
+
+                const response = await fetch(`/api/data?city=${city}`);
                 const data = await response.json();
 
                 // Update System Status
@@ -195,9 +227,25 @@
                     document.getElementById('weather-condition').textContent = data.data.weather_condition;
                 }
 
-                // Update Advice
+                // Update Advice & Efficiency
                 if (data.advice) {
-                    document.getElementById('advice-text').textContent = data.advice;
+                    let adviceHtml = `<strong>${data.advice}</strong>`;
+
+                    if (data.efficiency_score !== undefined) {
+                        let color = data.efficiency_score >= 7 ? 'text-success' : (data.efficiency_score >= 4 ? 'text-warning' : 'text-danger');
+                        adviceHtml += `<br><span class="${color}">Efficiency Score: ${data.efficiency_score}/10</span>`;
+                    }
+
+                    if (data.energy_details && data.energy_details.length > 0) {
+                        adviceHtml += `<ul class="mt-2 text-start small text-muted">`;
+                        data.energy_details.forEach(detail => {
+                            adviceHtml += `<li>${detail}</li>`;
+                        });
+                        adviceHtml += `</ul>`;
+                    }
+
+                    document.getElementById('advice-text').innerHTML = adviceHtml;
+
                     const alertBox = document.getElementById('action-alert');
                     if (data.action_required) {
                         alertBox.classList.remove('d-none');

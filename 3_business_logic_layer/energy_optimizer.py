@@ -11,32 +11,52 @@ def optimize_energy():
     if indoor_temp is None or outdoor_temp is None:
         return jsonify({"error": "Missing temperature data"}), 400
 
-    advice = "No specific action needed."
-    should_act = False
+    # Enhanced Logic with Comfort Index
+    # Mock Humidity (randomized for demo or fixed)
+    humidity = 50 
     
-    # Logic:
-    # If indoor is cold (< 18) and outdoor is warmer (> 20), open windows.
-    # If indoor is hot (> 25) and outdoor is cooler (< 22), open windows.
-    # If indoor is cold (< 18) and outdoor is cold (< 10), turn on heating.
+    # Calculate "Comfort Index" (Simplified Heat Index)
+    comfort_index = indoor_temp + (0.55 - 0.0055 * humidity) * (indoor_temp - 14.5)
     
-    if indoor_temp < 18:
-        if outdoor_temp > 20:
-            advice = "It's warmer outside. Open the windows to warm up naturally."
-            should_act = True
-        elif outdoor_temp < 10:
-            advice = "It's cold inside and outside. Turn on the heating."
-            should_act = True
-    elif indoor_temp > 25:
-        if outdoor_temp < 22:
-            advice = "It's cooler outside. Open the windows to cool down."
-            should_act = True
-        else:
-            advice = "It's hot. Consider turning on AC."
-            should_act = True
-            
+    efficiency_score = 10
+    reasons = []
+    
+    # Analyze Indoor State
+    if 20 <= indoor_temp <= 24:
+        reasons.append("Indoor temperature is optimal.")
+    elif indoor_temp < 20:
+        efficiency_score -= 2
+        reasons.append("It's a bit cold inside.")
+    else:
+        efficiency_score -= 2
+        reasons.append("It's a bit warm inside.")
+        
+    # Analyze Outdoor Context
+    if outdoor_temp > 25 and indoor_temp > 25:
+        advice = "High outdoor heat. Keep windows closed and use AC sparingly."
+        should_act = True
+        efficiency_score -= 3
+    elif outdoor_temp < 10 and indoor_temp < 18:
+        advice = "Cold outside. Ensure insulation is good and heating is efficient."
+        should_act = True
+        efficiency_score -= 2
+    elif 18 <= outdoor_temp <= 25 and indoor_temp > 24:
+        advice = "Perfect outdoor weather! Open windows to cool down naturally."
+        should_act = True
+        efficiency_score += 1 # Bonus for free cooling
+    elif 18 <= outdoor_temp <= 25 and indoor_temp < 20:
+        advice = "Mild outdoor weather. Open windows to warm up naturally."
+        should_act = True
+        efficiency_score += 1
+    else:
+        advice = f"System stable. Comfort Index: {comfort_index:.1f}. Efficiency Score: {efficiency_score}/10."
+        should_act = False
+
     return jsonify({
         "message": advice,
-        "should_act": should_act
+        "should_act": should_act,
+        "efficiency_score": efficiency_score,
+        "details": reasons
     })
 
 if __name__ == '__main__':

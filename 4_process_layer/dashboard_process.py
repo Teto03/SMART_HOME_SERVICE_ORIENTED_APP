@@ -10,6 +10,7 @@ BUSINESS_SERVICE_URL = "http://localhost:5006"
 
 @app.route('/api/home_status', methods=['GET'])
 def get_home_status():
+    city = request.args.get('city', 'Milan')
     response_data = {
         "system_status": "online",
         "data": {},
@@ -34,7 +35,7 @@ def get_home_status():
     # 2. Get Outdoor Temp
     outdoor_temp = None
     try:
-        res = requests.get(f"{ADAPTER_SERVICE_URL}/current_weather?city=Milan")
+        res = requests.get(f"{ADAPTER_SERVICE_URL}/current_weather?city={city}")
         if res.status_code == 200:
             data = res.json()
             outdoor_temp = data.get("temp_c")
@@ -54,6 +55,8 @@ def get_home_status():
                 data = res.json()
                 response_data["advice"] = data.get("message")
                 response_data["action_required"] = data.get("should_act")
+                response_data["efficiency_score"] = data.get("efficiency_score")
+                response_data["energy_details"] = data.get("details")
         except:
             response_data["alerts"].append("Business Service unreachable")
             
