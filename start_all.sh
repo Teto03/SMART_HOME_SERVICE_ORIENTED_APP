@@ -1,6 +1,12 @@
 #!/bin/bash
 echo "Starting all services..."
 
+# --- TELEGRAM CONFIGURATION ---
+# Replace with your actual token and chat ID
+export TELEGRAM_TOKEN="8534332339:AAEvSTwWSe5MTdFvY4cMsQyd8Kh28PsN_9U"
+export TELEGRAM_CHAT_ID="8124902208"
+# ------------------------------
+
 # 1. Data Layer
 python3 1_data_layer/device_service.py > logs_device.txt 2>&1 &
 PID_DEVICE=$!

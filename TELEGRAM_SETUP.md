@@ -26,11 +26,13 @@ To receive notifications from your SmartHome IoT Simulator, you need to create a
     *   Save this ID. You will use it as the `TELEGRAM_CHAT_ID` environment variable.
 
 ## 3. Configure the Simulator
-Set the environment variables before running the simulator:
+1.  Open the `start_all.sh` file.
+2.  Find the **TELEGRAM CONFIGURATION** section at the top.
+3.  Replace `MOCK_TOKEN` with your actual Bot Token.
+4.  Replace `123456789` with your actual Chat ID.
+5.  Save the file.
 
 ```bash
-export TELEGRAM_TOKEN="your_token_here"
-export TELEGRAM_CHAT_ID="your_chat_id_here"
 ./start_all.sh
 ```
 
