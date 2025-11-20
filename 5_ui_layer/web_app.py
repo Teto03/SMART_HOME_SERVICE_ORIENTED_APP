@@ -22,6 +22,24 @@ def get_data():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/devices')
+def get_devices():
+    try:
+        # Proxy to Process Layer
+        res = requests.get(f"http://localhost:5004/api/devices")
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/devices/command', methods=['POST'])
+def send_command():
+    try:
+        # Proxy to Process Layer
+        res = requests.post(f"http://localhost:5004/api/devices/command", json=request.json)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     print("Starting Web App on port 5000...")
     app.run(host='0.0.0.0', port=5000, debug=True)

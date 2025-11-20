@@ -59,6 +59,26 @@ def get_home_status():
             
     return jsonify(response_data)
 
+@app.route('/api/devices', methods=['GET'])
+def get_devices():
+    try:
+        res = requests.get(f"{DATA_SERVICE_URL}/devices")
+        if res.status_code == 200:
+            return jsonify(res.json())
+        else:
+            return jsonify({"error": "Could not fetch devices"}), 500
+    except:
+        return jsonify({"error": "Data Service unreachable"}), 500
+
+@app.route('/api/devices/command', methods=['POST'])
+def send_command():
+    try:
+        # Proxy the command to Data Service
+        res = requests.post(f"{DATA_SERVICE_URL}/devices/command", json=request.json)
+        return jsonify(res.json()), res.status_code
+    except:
+        return jsonify({"error": "Data Service unreachable"}), 500
+
 if __name__ == '__main__':
     print("Starting Dashboard Process on port 5004...")
     app.run(host='0.0.0.0', port=5004, debug=True)

@@ -31,6 +31,18 @@ def monitor_loop():
                             requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
                                 "message": f"ALERT: {anomaly} (Value: {value})"
                             })
+            
+            # 4. Check Window Status
+            res_window = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=living_room_window")
+            if res_window.status_code == 200:
+                win_data = res_window.json()
+                # Value 1.0 means OPEN
+                if win_data.get("value") == 1.0:
+                    print("ALERT: Window is OPEN!")
+                    requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={
+                        "message": "SECURITY ALERT: Living Room Window is OPEN!"
+                    })
+
         except Exception as e:
             print(f"Error in monitor loop: {e}")
             

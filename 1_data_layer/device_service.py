@@ -100,6 +100,33 @@ def get_latest_reading():
         else:
             return jsonify({"error": "No readings found"}), 404
 
+@app.route('/devices/command', methods=['POST'])
+def send_command():
+    data = request.json
+    device_id = data.get('device_id')
+    command = data.get('command') # e.g., "ON", "OFF", "OPEN", "CLOSE"
+    
+    if not device_id or not command:
+        return jsonify({"error": "Missing device_id or command"}), 400
+        
+    # In a real scenario, this would talk to the hardware.
+    # Here we just update the device status in DB or log it.
+    # For simulation purposes, we can treat the command as a status update.
+    
+    with sqlite3.connect(DB_PATH) as conn:
+        cursor = conn.cursor()
+        # Update status
+        cursor.execute('UPDATE devices SET status = ? WHERE id = ?', (command, device_id))
+        
+        # Also log as a reading so we can see it in history/latest
+        # Value mapping: ON/OPEN=1, OFF/CLOSE=0
+        val = 1.0 if command in ["ON", "OPEN"] else 0.0
+        cursor.execute('INSERT INTO readings (device_id, value, timestamp) VALUES (?, ?, ?)', 
+                       (device_id, val, time.time()))
+        conn.commit()
+        
+    return jsonify({"message": f"Command {command} sent to {device_id}", "new_status": command})
+
 if __name__ == '__main__':
     init_db()
     print("Starting Data Service on port 5001...")
