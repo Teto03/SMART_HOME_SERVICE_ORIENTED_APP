@@ -1,4 +1,129 @@
-Traceback (most recent call last):
-  File "/home/francesco/Scrivania/SED_PROJECT/3_business_logic_layer/analytics_service.py", line 1, in <module>
-    from flask import Flask, request, jsonify
-ModuleNotFoundError: No module named 'flask'
+Starting Analytics Service on port 5003...
+ * Serving Flask app 'analytics_service'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5003
+ * Running on http://192.168.1.59:5003
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-571-039
+127.0.0.1 - - [20/Nov/2025 16:44:40] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:43] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:45] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:47] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:49] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:51] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:53] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:55] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:57] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:59] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:01] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:03] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:05] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:07] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:09] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:11] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:13] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:15] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:17] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:19] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:21] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:23] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:25] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:27] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:29] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:31] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:33] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:35] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:37] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:39] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:41] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:43] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:45] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:47] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:49] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:51] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:53] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:55] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:57] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:59] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:01] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:03] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:05] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:07] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:09] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:11] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:13] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:16] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:18] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:20] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:22] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:24] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:26] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:28] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:30] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:32] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:34] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:36] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:38] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:40] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:42] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:44] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:46] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:48] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:50] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:52] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:54] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:56] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:58] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:00] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:02] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:04] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:06] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:08] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:10] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:12] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:14] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:16] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:18] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:20] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:22] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:24] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:26] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:28] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:30] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:32] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:34] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:36] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:38] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:40] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:43] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:45] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:47] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:49] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:51] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:53] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:55] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:57] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:59] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:01] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:03] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:05] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:07] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:09] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:11] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:13] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:15] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:17] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:19] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:21] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:23] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:25] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:27] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:29] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:32] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:34] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:36] "POST /analyze HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:38] "POST /analyze HTTP/1.1" 200 -

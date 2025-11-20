@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/home/francesco/Scrivania/SED_PROJECT/6_simulators/sensor_gen.py", line 1, in <module>
-    import requests
-ModuleNotFoundError: No module named 'requests'

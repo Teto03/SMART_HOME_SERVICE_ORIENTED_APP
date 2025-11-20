@@ -1,4 +1,57 @@
-Traceback (most recent call last):
-  File "/home/francesco/Scrivania/SED_PROJECT/3_business_logic_layer/energy_optimizer.py", line 1, in <module>
-    from flask import Flask, request, jsonify
-ModuleNotFoundError: No module named 'flask'
+Starting Energy Optimizer on port 5006...
+ * Serving Flask app 'energy_optimizer'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5006
+ * Running on http://192.168.1.59:5006
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-571-039
+127.0.0.1 - - [20/Nov/2025 16:44:48] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:58] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:03] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:08] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:14] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:19] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:24] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:29] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:34] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:39] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:44] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:49] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:54] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:59] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:04] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:09] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:14] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:19] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:24] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:29] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:34] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:39] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:44] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:49] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:54] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:59] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:04] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:09] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:14] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:19] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:24] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:29] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:34] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:39] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:44] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:49] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:54] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:59] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:04] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:08] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:09] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:14] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:19] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:24] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:29] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:34] "POST /optimize_energy HTTP/1.1" 200 -

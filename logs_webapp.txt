@@ -1,4 +1,126 @@
-Traceback (most recent call last):
-  File "/home/francesco/Scrivania/SED_PROJECT/5_ui_layer/web_app.py", line 1, in <module>
-    from flask import Flask, render_template, jsonify, request
-ModuleNotFoundError: No module named 'flask'
+Starting Web App on port 5000...
+ * Serving Flask app 'web_app'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5000
+ * Running on http://192.168.1.59:5000
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 944-571-039
+127.0.0.1 - - [20/Nov/2025 16:44:48] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:48] "GET /api/data?city=Milan HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:48] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:53] "GET /api/data?city=Tre HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:53] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:58] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:44:58] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:02] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:02] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:03] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:03] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:08] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:08] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:14] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:14] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:19] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:19] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:24] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:24] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:29] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:29] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:34] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:34] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:39] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:39] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:44] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:44] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:49] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:49] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:54] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:54] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:59] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:45:59] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:04] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:04] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:09] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:09] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:14] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:14] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:19] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:19] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:24] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:24] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:29] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:29] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:34] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:34] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:39] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:39] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:44] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:44] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:49] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:49] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:54] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:54] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:59] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:46:59] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:04] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:04] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:09] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:09] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:14] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:14] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:19] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:19] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:24] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:24] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:29] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:29] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:34] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:34] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:39] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:39] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:39] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:39] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:44] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:44] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:49] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:49] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:54] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:54] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:55] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:55] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:57] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:57] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:59] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:47:59] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:00] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:00] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:01] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:01] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:04] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:04] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:08] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:08] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:09] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:09] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:14] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:14] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:19] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:19] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:23] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:23] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:24] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:24] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:25] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:25] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:28] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:28] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:29] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:29] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:31] "POST /api/devices/command HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:31] "GET /api/devices HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:34] "GET /api/data?city=Trento HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 16:48:34] "GET /api/devices HTTP/1.1" 200 -
