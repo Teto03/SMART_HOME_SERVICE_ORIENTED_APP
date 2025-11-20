@@ -50,18 +50,36 @@ def optimize_energy():
         is_mild = 15 <= outdoor_temp <= 25
     
     # ============================================
-    # CRITICAL WASTAGE SCENARIOS (Efficiency: 0)
+    # SEASON-SPECIFIC CRITICAL CHECKS (Priority 1)
     # ============================================
     
-    # 1. AC + Boiler both ON = Heating and Cooling simultaneously
-    if ac_status == "ON" and boiler_status == "ON":
+    # SUMMER CRITICAL
+    if is_summer and boiler_status == "ON":
+        advice = "🚨 CRITICAL WASTE: Heating (Boiler) is ON during Summer! Turn it off immediately!"
+        should_act = True
+        efficiency_score = 0
+        reasons.append("Heating is completely unnecessary in summer.")
+        
+    # WINTER CRITICAL
+    elif is_winter and ac_status == "ON":
+        advice = "🚨 CRITICAL WASTE: AC is ON during Winter! Turn it off immediately!"
+        should_act = True
+        efficiency_score = 0
+        reasons.append("Cooling is completely unnecessary in winter.")
+
+    # ============================================
+    # GENERAL CRITICAL WASTAGE (Priority 2)
+    # ============================================
+    
+    # 1. AC + Boiler both ON
+    elif ac_status == "ON" and boiler_status == "ON":
         advice = "🚨 CRITICAL WASTE: Heating (Boiler) AND Cooling (AC) running simultaneously! Turn one off immediately!"
         should_act = True
         efficiency_score = 0
         reasons.append("Heating and cooling at the same time wastes massive energy.")
         reasons.append("Decide if you want to heat or cool, not both.")
     
-    # 2. AC ON with windows open = Cooling outside air
+    # 2. AC ON with windows open
     elif ac_status == "ON" and any_window_open:
         window_count_msg = f"({windows_open_count} window{'s' if windows_open_count > 1 else ''} open)"
         advice = f"⚠️ CRITICAL WASTE: AC is ON while windows are OPEN {window_count_msg}! Close all windows or turn off AC!"
@@ -70,83 +88,91 @@ def optimize_energy():
         reasons.append("Air conditioning cannot work efficiently with open windows.")
         reasons.append("You're cooling the entire neighborhood, not just your home.")
     
-    # 3. Boiler ON with multiple windows open = Major heat loss
+    # 3. Boiler ON with multiple windows open
     elif boiler_status == "ON" and windows_open_count >= 2:
         advice = f"⚠️ SEVERE WASTE: Boiler is ON with {windows_open_count} windows OPEN! Close windows immediately!"
         should_act = True
         efficiency_score = 0
         reasons.append(f"{windows_open_count} open windows cause massive heat loss.")
         reasons.append("Boiler is fighting against open windows - very wasteful.")
-    
+
     # ============================================
-    # HIGH PRIORITY WARNINGS (Efficiency: 1-4)
+    # SEASON-SPECIFIC WARNINGS & ADVICE (Priority 3)
     # ============================================
-    
-    # 4. Boiler ON with single window open
-    elif boiler_status == "ON" and windows_open_count == 1:
-        advice = "⚠️ Energy Waste: Boiler is ON but a window is OPEN! Close the window to retain heat."
-        should_act = True
-        efficiency_score = 3
-        reasons.append("Even one open window causes significant heat loss.")
-    
-    # 5. AC ON when temperature is already optimal
-    elif ac_status == "ON" and indoor_temp <= 24:
-        advice = "⚠️ AC running unnecessarily! Indoor temperature is already comfortable. Turn off AC."
-        should_act = True
-        efficiency_score = 3
-        reasons.append(f"Indoor temp ({indoor_temp}°C) is already optimal.")
-    
-    # 6. Boiler ON when temperature is already high
-    elif boiler_status == "ON" and indoor_temp >= 24:
-        advice = "⚠️ Boiler running unnecessarily! Indoor temperature is already warm. Turn off boiler."
-        should_act = True
-        efficiency_score = 2
-        reasons.append(f"Indoor temp ({indoor_temp}°C) is already high - no heating needed.")
-    
-    # ============================================
-    # SEASON-SPECIFIC RECOMMENDATIONS
-    # ============================================
-    
-    # SUMMER SEASON (Hot outside)
+
+    # SUMMER ADVICE
     elif is_summer:
         if indoor_temp > 26 and ac_status != "ON":
             advice = "☀️ Hot day! Indoor temperature is high. Consider turning on AC or opening windows for ventilation."
             should_act = True
             efficiency_score = 5
             reasons.append(f"Outdoor: {outdoor_temp}°C, Indoor: {indoor_temp}°C")
-        elif indoor_temp > outdoor_temp and not any_window_open:
+        
+        elif indoor_temp > outdoor_temp and not any_window_open and ac_status != "ON":
             advice = "💡 It's cooler outside! Open windows for free natural cooling instead of using AC."
             should_act = True
             efficiency_score = 6
             reasons.append("Natural ventilation is more efficient than AC.")
+        
+        elif indoor_temp < outdoor_temp and any_window_open and ac_status == "ON":
+             advice = "⚠️ Energy Waste: AC is ON and windows are OPEN while it's hotter outside! Close windows."
+             should_act = True
+             efficiency_score = 2
+             reasons.append("You are letting hot air in while trying to cool.")
+
         elif any_window_open and ac_status != "ON":
             advice = f"✓ Good! {windows_open_count} window{'s' if windows_open_count > 1 else ''} open for natural ventilation in summer."
             efficiency_score = 9
             reasons.append("Using natural cooling - very efficient!")
+            
+        # Fallback to general checks if no specific summer advice
+        elif boiler_status == "ON" and windows_open_count == 1:
+             # This case is technically covered by Summer Critical (Boiler ON), but kept for completeness logic flow
+             advice = "⚠️ Energy Waste: Boiler is ON but a window is OPEN! Close the window to retain heat."
+             should_act = True
+             efficiency_score = 3
+             reasons.append("Even one open window causes significant heat loss.")
+        
+        elif ac_status == "ON" and indoor_temp <= 24:
+            advice = "⚠️ AC running unnecessarily! Indoor temperature is already comfortable. Turn off AC."
+            should_act = True
+            efficiency_score = 3
+            reasons.append(f"Indoor temp ({indoor_temp}°C) is already optimal.")
+
         else:
             advice = f"System stable. Summer mode. Indoor: {indoor_temp}°C, Outdoor: {outdoor_temp}°C."
             efficiency_score = 7
-    
-    # WINTER SEASON (Cold outside)
+
+    # WINTER ADVICE
     elif is_winter:
-        if any_window_open and outdoor_temp < 10:
+        if any_window_open:
             advice = "🥶 Windows open in cold weather! Close them to prevent heat loss."
             should_act = True
-            efficiency_score = 4
+            efficiency_score = 3
             reasons.append(f"Outdoor temperature is {outdoor_temp}°C - too cold for open windows.")
+        
         elif indoor_temp < 19 and boiler_status != "ON":
             advice = "🌡️ Indoor temperature is low. Consider turning on heating."
             should_act = True
             efficiency_score = 6
             reasons.append(f"Indoor: {indoor_temp}°C - below comfortable range.")
+        
         elif boiler_status == "ON" and indoor_temp >= 20:
             advice = "✓ Good! Heating is maintaining comfortable temperature."
             efficiency_score = 8
+            
+        # Fallback to general checks
+        elif boiler_status == "ON" and indoor_temp >= 24:
+            advice = "⚠️ Boiler running unnecessarily! Indoor temperature is already warm. Turn off boiler."
+            should_act = True
+            efficiency_score = 2
+            reasons.append(f"Indoor temp ({indoor_temp}°C) is already high - no heating needed.")
+
         else:
             advice = f"System stable. Winter mode. Indoor: {indoor_temp}°C, Outdoor: {outdoor_temp}°C."
             efficiency_score = 7
-    
-    # MILD WEATHER (Perfect for natural ventilation)
+
+    # MILD ADVICE
     elif is_mild:
         if any_window_open and boiler_status == "OFF" and ac_status == "OFF":
             advice = f"✅ EXCELLENT! {windows_open_count} window{'s' if windows_open_count > 1 else ''} open for natural ventilation. Both HVAC systems off. Perfect!"
