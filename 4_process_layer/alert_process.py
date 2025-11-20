@@ -84,7 +84,7 @@ def monitor_loop():
         except Exception as e:
             print(f"Error in monitor loop: {e}")
             
-        time.sleep(5)
+        time.sleep(2)  # Check every 2 seconds for faster alerts
 
 if __name__ == '__main__':
     # Run as a standalone script or service

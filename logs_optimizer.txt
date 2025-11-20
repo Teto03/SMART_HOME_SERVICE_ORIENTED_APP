@@ -1,38 +1,4 @@
-Starting Energy Optimizer on port 5006...
- * Serving Flask app 'energy_optimizer'
- * Debug mode: on
-[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
- * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:5006
- * Running on http://192.168.1.59:5006
-[33mPress CTRL+C to quit[0m
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 335-614-201
-127.0.0.1 - - [20/Nov/2025 16:12:23] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:28] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:33] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:36] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:38] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:40] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:41] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:43] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:44] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:47] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:48] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:53] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:58] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:12:58] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:03] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:04] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:08] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:13] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:19] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:24] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:29] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:31] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:36] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:41] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:47] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:52] "POST /optimize_energy HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:13:57] "POST /optimize_energy HTTP/1.1" 200 -
+Traceback (most recent call last):
+  File "/home/francesco/Scrivania/SED_PROJECT/3_business_logic_layer/energy_optimizer.py", line 1, in <module>
+    from flask import Flask, request, jsonify
+ModuleNotFoundError: No module named 'flask'

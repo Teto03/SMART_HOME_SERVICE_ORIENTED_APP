@@ -5,6 +5,8 @@ echo "Starting all services..."
 # Replace with your actual token and chat ID
 export TELEGRAM_TOKEN="8534332339:AAEvSTwWSe5MTdFvY4cMsQyd8Kh28PsN_9U"
 export TELEGRAM_CHAT_ID="8124902208"
+# Replace with your OpenWeatherMap API Key (optional)
+export OWM_API_KEY="e7c09dd6eaba4bd292958f2fbcff734b"
 # ------------------------------
 
 # 1. Data Layer
