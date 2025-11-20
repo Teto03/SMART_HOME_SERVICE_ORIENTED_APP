@@ -1,5 +1,16 @@
 Starting Energy Optimizer on port 5006...
  * Serving Flask app 'energy_optimizer'
  * Debug mode: on
-Address already in use
-Port 5006 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5006
+ * Running on http://192.168.1.59:5006
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 335-614-201
+127.0.0.1 - - [20/Nov/2025 15:55:37] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:42] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:48] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:53] "POST /optimize_energy HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:58] "POST /optimize_energy HTTP/1.1" 200 -

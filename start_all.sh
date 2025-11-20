@@ -33,6 +33,10 @@ python3 4_process_layer/dashboard_process.py > logs_dashboard.txt 2>&1 &
 PID_DASHBOARD=$!
 echo "Dashboard Process started (PID: $PID_DASHBOARD)"
 
+python3 4_process_layer/alert_process.py > logs_alert.txt 2>&1 &
+PID_ALERT=$!
+echo "Alert Process started (PID: $PID_ALERT)"
+
 # 5. UI Layer
 python3 5_ui_layer/web_app.py > logs_webapp.txt 2>&1 &
 PID_WEBAPP=$!
@@ -41,5 +45,5 @@ echo "Web App started (PID: $PID_WEBAPP)"
 echo "All services running. Press Enter to stop..."
 read
 
-kill $PID_DEVICE $PID_SENSOR $PID_WEATHER $PID_TELEGRAM $PID_ANALYTICS $PID_OPTIMIZER $PID_DASHBOARD $PID_WEBAPP
+kill $PID_DEVICE $PID_SENSOR $PID_WEATHER $PID_TELEGRAM $PID_ANALYTICS $PID_OPTIMIZER $PID_DASHBOARD $PID_WEBAPP $PID_ALERT
 echo "All services stopped."

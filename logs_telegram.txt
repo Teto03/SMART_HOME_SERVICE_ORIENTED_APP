@@ -1,5 +1,25 @@
 Starting Telegram Adapter on port 5005...
  * Serving Flask app 'telegram_adapter'
  * Debug mode: on
-Address already in use
-Port 5005 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5005
+ * Running on http://192.168.1.59:5005
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 335-614-201
+127.0.0.1 - - [20/Nov/2025 15:55:27] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:37] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:38] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:47] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:55:57] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:56:07] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:56:17] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:56:27] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:56:37] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:56:47] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:56:57] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:57:07] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:57:17] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [20/Nov/2025 15:57:27] "POST /send_message HTTP/1.1" 200 -
