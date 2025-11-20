@@ -10,43 +10,43 @@ export OWM_API_KEY="e7c09dd6eaba4bd292958f2fbcff734b"
 # ------------------------------
 
 # 1. Data Layer
-python3 1_data_layer/device_service.py > logs_device.txt 2>&1 &
+./venv/bin/python3 1_data_layer/device_service.py > logs_device.txt 2>&1 &
 PID_DEVICE=$!
 echo "Device Service started (PID: $PID_DEVICE)"
 
-python3 6_simulators/sensor_gen.py > logs_sensor.txt 2>&1 &
+./venv/bin/python3 6_simulators/sensor_gen.py > logs_sensor.txt 2>&1 &
 PID_SENSOR=$!
 echo "Sensor Gen started (PID: $PID_SENSOR)"
 
 # 2. Adapter Layer
-python3 2_adapter_layer/weather_adapter.py > logs_weather.txt 2>&1 &
+./venv/bin/python3 2_adapter_layer/weather_adapter.py > logs_weather.txt 2>&1 &
 PID_WEATHER=$!
 echo "Weather Adapter started (PID: $PID_WEATHER)"
 
-python3 2_adapter_layer/telegram_adapter.py > logs_telegram.txt 2>&1 &
+./venv/bin/python3 2_adapter_layer/telegram_adapter.py > logs_telegram.txt 2>&1 &
 PID_TELEGRAM=$!
 echo "Telegram Adapter started (PID: $PID_TELEGRAM)"
 
 # 3. Business Logic Layer
-python3 3_business_logic_layer/analytics_service.py > logs_analytics.txt 2>&1 &
+./venv/bin/python3 3_business_logic_layer/analytics_service.py > logs_analytics.txt 2>&1 &
 PID_ANALYTICS=$!
 echo "Analytics Service started (PID: $PID_ANALYTICS)"
 
-python3 3_business_logic_layer/energy_optimizer.py > logs_optimizer.txt 2>&1 &
+./venv/bin/python3 3_business_logic_layer/energy_optimizer.py > logs_optimizer.txt 2>&1 &
 PID_OPTIMIZER=$!
 echo "Energy Optimizer started (PID: $PID_OPTIMIZER)"
 
 # 4. Process Layer
-python3 4_process_layer/dashboard_process.py > logs_dashboard.txt 2>&1 &
+./venv/bin/python3 4_process_layer/dashboard_process.py > logs_dashboard.txt 2>&1 &
 PID_DASHBOARD=$!
 echo "Dashboard Process started (PID: $PID_DASHBOARD)"
 
-python3 4_process_layer/alert_process.py > logs_alert.txt 2>&1 &
+./venv/bin/python3 4_process_layer/alert_process.py > logs_alert.txt 2>&1 &
 PID_ALERT=$!
 echo "Alert Process started (PID: $PID_ALERT)"
 
 # 5. UI Layer
-python3 5_ui_layer/web_app.py > logs_webapp.txt 2>&1 &
+./venv/bin/python3 5_ui_layer/web_app.py > logs_webapp.txt 2>&1 &
 PID_WEBAPP=$!
 echo "Web App started (PID: $PID_WEBAPP)"
 

@@ -8,8 +8,5 @@ Starting Telegram Adapter on port 5005...
 [33mPress CTRL+C to quit[0m
  * Restarting with stat
  * Debugger is active!
- * Debugger PIN: 944-571-039
-127.0.0.1 - - [20/Nov/2025 16:44:40] "POST /send_message HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:44:41] "POST /send_message HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:48:03] "POST /send_message HTTP/1.1" 200 -
-127.0.0.1 - - [20/Nov/2025 16:48:29] "POST /send_message HTTP/1.1" 200 -
+ * Debugger PIN: 136-438-214
+127.0.0.1 - - [20/Nov/2025 18:07:14] "POST /send_message HTTP/1.1" 200 -

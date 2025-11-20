@@ -46,14 +46,20 @@ if __name__ == "__main__":
     t1 = threading.Thread(target=simulate_sensor, args=("temp_sensor_01", "temperature", 18.0, 25.0))
     t1.start()
 
-    # 2. Window Sensor (Initially Closed=0)
-    # We don't loop random values for window/heater to avoid overwriting user commands constantly.
-    # But we register them.
+    # 2. Register controllable devices (Windows, Heater, AC)
+    # We don't loop random values for these to avoid overwriting user commands constantly.
     try:
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "living_room_window", "type": "window", "status": "CLOSE"})
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "main_heater", "type": "heater", "status": "OFF"})
-        print("Registered Window and Heater.")
-    except:
-        print("Could not register extra devices.")
+        # Windows (3 total)
+        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "living_room_window", "type": "window", "status": "CLOSED"})
+        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "bedroom_window", "type": "window", "status": "CLOSED"})
+        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "kitchen_window", "type": "window", "status": "CLOSED"})
+        
+        # HVAC Systems
+        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "smart_heater_1", "type": "heater", "status": "OFF"})
+        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "air_conditioner", "type": "ac", "status": "OFF"})
+        
+        print("Registered 3 Windows, Heater, and AC.")
+    except Exception as e:
+        print(f"Could not register extra devices: {e}")
 
     t1.join()

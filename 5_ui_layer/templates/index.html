@@ -143,15 +143,22 @@
                         const isOpen = device.status === 'OPEN';
                         statusColor = isOpen ? 'text-danger' : 'text-success';
                         controls = `
-                            <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'OPEN')">Open</button>
-                            <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'CLOSE')">Close</button>
+                            <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'OPEN')">Open</button>
+                            <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'CLOSE')">Close</button>
                         `;
                     } else if (device.type === 'heater') {
                         const isOn = device.status === 'ON';
                         statusColor = isOn ? 'text-danger' : 'text-muted';
                         controls = `
-                            <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'ON')">Turn On</button>
-                            <button class="btn btn-sm btn-secondary" onclick="sendCommand('${device.id}', 'OFF')">Turn Off</button>
+                            <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'ON')">Turn On</button>
+                            <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'OFF')">Turn Off</button>
+                        `;
+                    } else if (device.type === 'ac') {
+                        const isOn = device.status === 'ON';
+                        statusColor = isOn ? 'text-info' : 'text-muted';
+                        controls = `
+                            <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'ON')">Turn On</button>
+                            <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'OFF')">Turn Off</button>
                         `;
                     }
 
