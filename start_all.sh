@@ -31,6 +31,10 @@ echo "Analytics Service started (PID: $PID_ANALYTICS)"
 PID_OPTIMIZER=$!
 echo "Energy Optimizer started (PID: $PID_OPTIMIZER)"
 
+./venv/bin/python3 3_business_logic_layer/auth_service.py > logs_auth.txt 2>&1 &
+PID_AUTH=$!
+echo "Auth Service started (PID: $PID_AUTH)"
+
 # 4. Process Layer
 ./venv/bin/python3 4_process_layer/dashboard_process.py > logs_dashboard.txt 2>&1 &
 PID_DASHBOARD=$!
@@ -48,5 +52,5 @@ echo "Web App started (PID: $PID_WEBAPP)"
 echo "All services running. Press Enter to stop..."
 read
 
-kill $PID_DEVICE $PID_SENSOR $PID_WEATHER $PID_TELEGRAM $PID_ANALYTICS $PID_OPTIMIZER $PID_DASHBOARD $PID_WEBAPP $PID_ALERT
+kill $PID_DEVICE $PID_SENSOR $PID_WEATHER $PID_TELEGRAM $PID_ANALYTICS $PID_OPTIMIZER $PID_DASHBOARD $PID_WEBAPP $PID_ALERT $PID_AUTH
 echo "All services stopped."

@@ -152,13 +152,70 @@
             <div class="col-md-12 text-center">
                 <button class="btn btn-primary btn-lg" onclick="refreshAll()">Refresh Data</button>
                 <script>
+                    // Auth Logic
+                    let authToken = localStorage.getItem('auth_token');
+                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'), {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+
+                    function checkAuth() {
+                        if (!authToken) {
+                            loginModal.show();
+                        } else {
+                            refreshAll();
+                        }
+                    }
+
+                    async function handleLogin() {
+                        const usernameInput = document.getElementById('username');
+                        const passwordInput = document.getElementById('password');
+                        const errorMsg = document.getElementById('login-error');
+
+                        try {
+                            const res = await fetch('/api/login', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    username: usernameInput.value,
+                                    password: passwordInput.value
+                                })
+                            });
+
+                            const data = await res.json();
+
+                            if (res.ok) {
+                                authToken = data.token;
+                                localStorage.setItem('auth_token', authToken);
+                                loginModal.hide();
+                                refreshAll();
+                                errorMsg.classList.add('d-none');
+                            } else {
+                                errorMsg.textContent = data.error || "Login failed";
+                                errorMsg.classList.remove('d-none');
+                            }
+                        } catch (e) {
+                            errorMsg.textContent = "Connection error";
+                            errorMsg.classList.remove('d-none');
+                        }
+                    }
+
+                    function logout() {
+                        authToken = null;
+                        localStorage.removeItem('auth_token');
+                        location.reload();
+                    }
+
                     // Update settings when season mode changes
                     async function updateSettings() {
                         const mode = document.getElementById('seasonMode').value;
                         try {
                             await fetch('/settings', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' + authToken
+                                },
                                 body: JSON.stringify({ season_mode: mode })
                             });
                             fetchData(); // Refresh status immediately
@@ -226,9 +283,19 @@
                         try {
                             const res = await fetch('/api/devices/command', {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' + authToken
+                                },
                                 body: JSON.stringify({ device_id: deviceId, command: command })
                             });
+
+                            if (res.status === 401) {
+                                alert("Session expired. Please login again.");
+                                logout();
+                                return;
+                            }
+
                             if (res.ok) {
                                 // Refresh list to show new status
                                 fetchDevices();
@@ -391,11 +458,44 @@
 
                     // Initial Load
                     document.addEventListener('DOMContentLoaded', () => {
-                        refreshAll();
+                        checkAuth();
                         // Auto refresh every 5 seconds
-                        setInterval(refreshAll, 5000);
+                        setInterval(() => {
+                            if (authToken) refreshAll();
+                        }, 5000);
                     });
                 </script>
+
+                <!-- Login Modal -->
+                <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel"
+                    aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header bg-primary text-white">
+                                <h5 class="modal-title" id="loginModalLabel">Welcome Home</h5>
+                            </div>
+                            <div class="modal-body">
+                                <p class="text-muted mb-4">Please sign in to access your SmartHome Dashboard.</p>
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Username</label>
+                                    <input type="text" class="form-control" id="username" placeholder="Enter username">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="password" class="form-label">Password</label>
+                                    <input type="password" class="form-control" id="password"
+                                        placeholder="Enter password">
+                                </div>
+                                <div id="login-error" class="alert alert-danger d-none" role="alert"></div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary w-100" onclick="handleLogin()">Sign
+                                    In</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

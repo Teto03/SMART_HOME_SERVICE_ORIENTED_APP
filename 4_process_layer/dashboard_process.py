@@ -7,11 +7,45 @@ app = Flask(__name__)
 DATA_SERVICE_URL = "http://localhost:5001"
 ADAPTER_SERVICE_URL = "http://localhost:5002"
 BUSINESS_SERVICE_URL = "http://localhost:5006"
+AUTH_SERVICE_URL = "http://localhost:5010"
 
 # Global settings
 current_season_mode = "auto"
 
+def require_auth(f):
+    from functools import wraps
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        token = None
+        if 'Authorization' in request.headers:
+            auth_header = request.headers['Authorization']
+            if auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+        
+        if not token:
+            return jsonify({"error": "Authentication required"}), 401
+            
+        try:
+            # Verify token with Auth Service
+            res = requests.post(f"{AUTH_SERVICE_URL}/verify", json={"token": token})
+            if res.status_code != 200 or not res.json().get("valid"):
+                 return jsonify({"error": "Invalid or expired token"}), 401
+        except:
+             return jsonify({"error": "Auth Service unreachable"}), 500
+             
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/api/login', methods=['POST'])
+def login_proxy():
+    try:
+        res = requests.post(f"{AUTH_SERVICE_URL}/login", json=request.json)
+        return jsonify(res.json()), res.status_code
+    except:
+        return jsonify({"error": "Auth Service unreachable"}), 500
+
 @app.route('/settings', methods=['POST'])
+@require_auth
 def update_settings():
     global current_season_mode
     data = request.json
@@ -121,9 +155,11 @@ def get_home_status():
                 response_data["energy_details"] = data.get("details")
                 response_data["season"] = data.get("season")
                 response_data["windows_open_count"] = data.get("windows_open_count")
+                response_data["season_mode"] = current_season_mode
         except:
             response_data["alerts"].append("Business Service unreachable")
             
+    response_data["season_mode"] = current_season_mode
     return jsonify(response_data)
 
 @app.route('/api/devices', methods=['GET'])
@@ -138,6 +174,7 @@ def get_devices():
         return jsonify({"error": "Data Service unreachable"}), 500
 
 @app.route('/api/devices/command', methods=['POST'])
+@require_auth
 def send_command():
     try:
         # Proxy the command to Data Service
