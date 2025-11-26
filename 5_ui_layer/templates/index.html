@@ -151,28 +151,61 @@
         <div class="row mt-4">
             <div class="col-md-12 text-center">
                 <button class="btn btn-primary btn-lg" onclick="refreshAll()">Refresh Data</button>
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
                 <script>
                     // Auth Logic
+                    console.log("Script started");
                     let authToken = localStorage.getItem('auth_token');
-                    const loginModal = new bootstrap.Modal(document.getElementById('loginModal'), {
-                        backdrop: 'static',
-                        keyboard: false
+                    let loginModal;
+
+                    document.addEventListener('DOMContentLoaded', () => {
+                        console.log("DOMContentLoaded");
+                        if (typeof bootstrap === 'undefined') {
+                            console.error("Bootstrap is undefined!");
+                            alert("Error: Bootstrap failed to load. Please check your internet connection.");
+                            return;
+                        }
+                        try {
+                            loginModal = new bootstrap.Modal(document.getElementById('loginModal'), {
+                                keyboard: false,
+                                backdrop: 'static'
+                            });
+                            console.log("Modal initialized");
+
+                            // Attach event listener
+                            const loginBtn = document.getElementById('loginBtn');
+                            if (loginBtn) {
+                                loginBtn.addEventListener('click', handleLogin);
+                                console.log("Login button listener attached");
+                            } else {
+                                console.error("Login button not found!");
+                            }
+
+                            checkAuth();
+                        } catch (e) {
+                            console.error("Error initializing modal:", e);
+                        }
                     });
 
                     function checkAuth() {
+                        console.log("Checking auth, token:", authToken);
                         if (!authToken) {
+                            console.log("No token, showing modal");
                             loginModal.show();
                         } else {
+                            console.log("Token found, refreshing all");
                             refreshAll();
                         }
                     }
 
                     async function handleLogin() {
+                        console.log("handleLogin called");
                         const usernameInput = document.getElementById('username');
                         const passwordInput = document.getElementById('password');
                         const errorMsg = document.getElementById('login-error');
 
                         try {
+                            console.log("Sending login request...");
                             const res = await fetch('/api/login', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -488,14 +521,12 @@
                                 <div id="login-error" class="alert alert-danger d-none" role="alert"></div>
                             </div>
                             <div class="modal-footer">
-                                <button type="button" class="btn btn-primary w-100" onclick="handleLogin()">Sign
-                                    In</button>
+                                <button type="button" class="btn btn-primary" id="loginBtn">Sign In</button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

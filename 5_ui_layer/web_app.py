@@ -36,7 +36,23 @@ def get_devices():
 def send_command():
     try:
         # Proxy to Process Layer
-        res = requests.post(f"http://localhost:5004/api/devices/command", json=request.json)
+        res = requests.post(f"http://localhost:5004/api/devices/command", json=request.json, headers=request.headers)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/login', methods=['POST'])
+def login_proxy():
+    try:
+        res = requests.post(f"http://localhost:5004/api/login", json=request.json)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/settings', methods=['POST'])
+def settings_proxy():
+    try:
+        res = requests.post(f"http://localhost:5004/settings", json=request.json, headers=request.headers)
         return jsonify(res.json()), res.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500

@@ -49,8 +49,6 @@ echo "Alert Process started (PID: $PID_ALERT)"
 PID_WEBAPP=$!
 echo "Web App started (PID: $PID_WEBAPP)"
 
-echo "All services running. Press Enter to stop..."
-read
-
-kill $PID_DEVICE $PID_SENSOR $PID_WEATHER $PID_TELEGRAM $PID_ANALYTICS $PID_OPTIMIZER $PID_DASHBOARD $PID_WEBAPP $PID_ALERT $PID_AUTH
+echo "All services running. Waiting..."
+wait
 echo "All services stopped."

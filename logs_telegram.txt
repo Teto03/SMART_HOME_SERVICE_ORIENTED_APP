@@ -1,0 +1,20 @@
+Starting Telegram Adapter on port 5005...
+ * Serving Flask app 'telegram_adapter'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5005
+ * Running on http://192.168.1.59:5005
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: 439-572-734
+127.0.0.1 - - [21/Nov/2025 14:42:24] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:42:24] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:42:37] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:42:37] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:45:19] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:45:19] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:45:21] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:45:28] "POST /send_message HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 14:45:28] "POST /send_message HTTP/1.1" 200 -
