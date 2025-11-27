@@ -53,18 +53,28 @@ if __name__ == "__main__":
 
     # 2. Register controllable devices (Windows, Heater, AC)
     # We don't loop random values for these to avoid overwriting user commands constantly.
-    try:
-        # Windows (3 total)
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "living_room_window", "type": "window", "status": "CLOSED"})
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "bedroom_window", "type": "window", "status": "CLOSED"})
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "kitchen_window", "type": "window", "status": "CLOSED"})
-        
-        # HVAC Systems
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "smart_heater_1", "type": "heater", "status": "OFF"})
-        requests.post(f"{DATA_SERVICE_URL}/devices", json={"device_id": "air_conditioner", "type": "ac", "status": "OFF"})
-        
-        print("Registered 3 Windows, Heater, and AC.")
-    except Exception as e:
-        print(f"Could not register extra devices: {e}")
+    # 2. Register controllable devices (Windows, Heater, AC)
+    # We don't loop random values for these to avoid overwriting user commands constantly.
+    # Retry loop for these devices as well
+    devices_to_register = [
+        {"device_id": "living_room_window", "type": "window", "status": "CLOSED"},
+        {"device_id": "bedroom_window", "type": "window", "status": "CLOSED"},
+        {"device_id": "kitchen_window", "type": "window", "status": "CLOSED"},
+        {"device_id": "smart_heater_1", "type": "heater", "status": "OFF"},
+        {"device_id": "air_conditioner", "type": "ac", "status": "OFF"}
+    ]
+
+    for device in devices_to_register:
+        registered = False
+        while not registered:
+            try:
+                requests.post(f"{DATA_SERVICE_URL}/devices", json=device, timeout=2)
+                print(f"Registered {device['device_id']}")
+                registered = True
+            except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+                print(f"Data Service not reachable for {device['device_id']}. Retrying in 2s...")
+                time.sleep(2)
+    
+    print("All controllable devices registered.")
 
     t1.join()

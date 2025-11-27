@@ -27,8 +27,6 @@ services:
     command: python3 2_adapter_layer/weather_adapter.py
     ports:
       - "5002:5002"
-    env_file:
-      - .env
     volumes:
       - ./logs:/app/logs
 
@@ -37,8 +35,6 @@ services:
     command: python3 2_adapter_layer/telegram_adapter.py
     ports:
       - "5005:5005"
-    env_file:
-      - .env
     volumes:
       - ./logs:/app/logs
 
