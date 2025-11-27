@@ -1,11 +1,13 @@
 import requests
+import os
 import time
 import threading
 
 # Service URLs
-DATA_SERVICE_URL = "http://localhost:5001"
-ANALYTICS_SERVICE_URL = "http://localhost:5003"
-TELEGRAM_ADAPTER_URL = "http://localhost:5005"
+# Service URLs
+DATA_SERVICE_URL = os.environ.get("DATA_SERVICE_URL", "http://localhost:5001")
+ANALYTICS_SERVICE_URL = os.environ.get("ANALYTICS_SERVICE_URL", "http://localhost:5003")
+TELEGRAM_ADAPTER_URL = os.environ.get("TELEGRAM_ADAPTER_URL", "http://localhost:5005")
 
 # State tracking
 last_alert_state = {

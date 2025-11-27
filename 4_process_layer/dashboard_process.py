@@ -1,13 +1,15 @@
 import requests
+import os
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
 # Service URLs
-DATA_SERVICE_URL = "http://localhost:5001"
-ADAPTER_SERVICE_URL = "http://localhost:5002"
-BUSINESS_SERVICE_URL = "http://localhost:5006"
-AUTH_SERVICE_URL = "http://localhost:5010"
+# Service URLs
+DATA_SERVICE_URL = os.environ.get("DATA_SERVICE_URL", "http://localhost:5001")
+ADAPTER_SERVICE_URL = os.environ.get("ADAPTER_SERVICE_URL", "http://localhost:5002")
+BUSINESS_SERVICE_URL = os.environ.get("BUSINESS_SERVICE_URL", "http://localhost:5006")
+AUTH_SERVICE_URL = os.environ.get("AUTH_SERVICE_URL", "http://localhost:5010")
 
 # Global settings
 current_season_mode = "auto"

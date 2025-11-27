@@ -1,10 +1,13 @@
 from flask import Flask, render_template, jsonify, request
+import os
 import requests
 
 app = Flask(__name__)
 
 # Process Layer URL
-DASHBOARD_PROCESS_URL = "http://localhost:5004/api/home_status"
+# Process Layer URL
+DASHBOARD_PROCESS_URL = os.environ.get("DASHBOARD_PROCESS_URL", "http://localhost:5004/api/home_status")
+PROCESS_BASE_URL = os.environ.get("PROCESS_BASE_URL", "http://localhost:5004")
 
 @app.route('/')
 def index():
@@ -27,7 +30,7 @@ def get_data():
 def get_devices():
     try:
         # Proxy to Process Layer
-        res = requests.get(f"http://localhost:5004/api/devices")
+        res = requests.get(f"{PROCESS_BASE_URL}/api/devices")
         return jsonify(res.json()), res.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -36,7 +39,7 @@ def get_devices():
 def send_command():
     try:
         # Proxy to Process Layer
-        res = requests.post(f"http://localhost:5004/api/devices/command", json=request.json, headers=request.headers)
+        res = requests.post(f"{PROCESS_BASE_URL}/api/devices/command", json=request.json, headers=request.headers)
         return jsonify(res.json()), res.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -44,7 +47,7 @@ def send_command():
 @app.route('/api/login', methods=['POST'])
 def login_proxy():
     try:
-        res = requests.post(f"http://localhost:5004/api/login", json=request.json)
+        res = requests.post(f"{PROCESS_BASE_URL}/api/login", json=request.json)
         return jsonify(res.json()), res.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -52,7 +55,7 @@ def login_proxy():
 @app.route('/settings', methods=['POST'])
 def settings_proxy():
     try:
-        res = requests.post(f"http://localhost:5004/settings", json=request.json, headers=request.headers)
+        res = requests.post(f"{PROCESS_BASE_URL}/settings", json=request.json, headers=request.headers)
         return jsonify(res.json()), res.status_code
     except Exception as e:
         return jsonify({"error": str(e)}), 500

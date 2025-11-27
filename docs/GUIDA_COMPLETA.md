@@ -109,6 +109,28 @@ Questo fermerà tutti i processi Python in esecuzione.
 
 ---
 
+## 🐳 Esecuzione con Docker
+
+Se preferisci non installare dipendenze Python locali, puoi usare Docker.
+
+### Prerequisiti
+- Docker installato
+- Docker Compose installato
+
+### Avvio
+1. Apri un terminale nella cartella del progetto.
+2. Esegui:
+   ```bash
+   docker compose up --build
+   ```
+3. Attendi che tutti i servizi siano avviati.
+4. Vai su **http://localhost:5000** nel browser.
+
+### Arresto
+Premi `Ctrl+C` nel terminale dove sta girando Docker.
+
+---
+
 ## 📱 Configurazione Telegram Bot
 
 Per ricevere notifiche dal tuo SmartHome IoT Simulator, devi creare un Bot Telegram e ottenere il tuo Chat ID.

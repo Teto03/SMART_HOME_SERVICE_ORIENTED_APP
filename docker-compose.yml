@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # --- Data Layer ---
+  data-service:
+    build: .
+    command: python3 1_data_layer/device_service.py
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./devices.db:/app/devices.db
+      - ./logs:/app/logs
+
+  sensor-gen:
+    build: .
+    command: python3 6_simulators/sensor_gen.py
+    environment:
+      - DATA_SERVICE_URL=http://data-service:5001
+    depends_on:
+      - data-service
+    volumes:
+      - ./logs:/app/logs
+
+  # --- Adapter Layer ---
+  weather-adapter:
+    build: .
+    command: python3 2_adapter_layer/weather_adapter.py
+    ports:
+      - "5002:5002"
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+
+  telegram-adapter:
+    build: .
+    command: python3 2_adapter_layer/telegram_adapter.py
+    ports:
+      - "5005:5005"
+    env_file:
+      - .env
+    volumes:
+      - ./logs:/app/logs
+
+  # --- Business Logic Layer ---
+  analytics-service:
+    build: .
+    command: python3 3_business_logic_layer/analytics_service.py
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./logs:/app/logs
+
+  energy-optimizer:
+    build: .
+    command: python3 3_business_logic_layer/energy_optimizer.py
+    ports:
+      - "5006:5006"
+    volumes:
+      - ./logs:/app/logs
+
+  auth-service:
+    build: .
+    command: python3 3_business_logic_layer/auth_service.py
+    ports:
+      - "5010:5010"
+    volumes:
+      - ./logs:/app/logs
+
+  # --- Process Layer ---
+  dashboard-process:
+    build: .
+    command: python3 4_process_layer/dashboard_process.py
+    ports:
+      - "5004:5004"
+    environment:
+      - DATA_SERVICE_URL=http://data-service:5001
+      - ADAPTER_SERVICE_URL=http://weather-adapter:5002
+      - BUSINESS_SERVICE_URL=http://energy-optimizer:5006
+      - AUTH_SERVICE_URL=http://auth-service:5010
+    depends_on:
+      - data-service
+      - weather-adapter
+      - energy-optimizer
+      - auth-service
+    volumes:
+      - ./logs:/app/logs
+
+  alert-process:
+    build: .
+    command: python3 4_process_layer/alert_process.py
+    environment:
+      - DATA_SERVICE_URL=http://data-service:5001
+      - ANALYTICS_SERVICE_URL=http://analytics-service:5003
+      - TELEGRAM_ADAPTER_URL=http://telegram-adapter:5005
+    depends_on:
+      - data-service
+      - analytics-service
+      - telegram-adapter
+    volumes:
+      - ./logs:/app/logs
+
+  # --- UI Layer ---
+  web-app:
+    build: .
+    command: python3 5_ui_layer/web_app.py
+    ports:
+      - "5000:5000"
+    environment:
+      - DASHBOARD_PROCESS_URL=http://dashboard-process:5004/api/home_status
+      - PROCESS_BASE_URL=http://dashboard-process:5004
+    depends_on:
+      - dashboard-process
+    volumes:
+      - ./logs:/app/logs

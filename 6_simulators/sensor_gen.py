@@ -1,9 +1,10 @@
 import requests
+import os
 import time
 import random
 import sys
 
-DATA_SERVICE_URL = "http://localhost:5001"
+DATA_SERVICE_URL = os.environ.get("DATA_SERVICE_URL", "http://localhost:5001")
 
 def simulate_sensor(device_id, device_type, min_val, max_val):
     print(f"Starting simulation for {device_id} ({device_type})...")

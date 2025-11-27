@@ -23,6 +23,16 @@ Run the startup script to launch all services:
 ```
 Access the dashboard at: `http://localhost:5000`
 
+### Docker Deployment
+Alternatively, you can run the entire system using Docker:
+
+1. Ensure you have Docker and Docker Compose installed.
+2. Run:
+   ```bash
+   docker compose up --build
+   ```
+3. Access the dashboard at: `http://localhost:5000`
+
 ### API Documentation
 
 #### Data Service (Port 5001)
