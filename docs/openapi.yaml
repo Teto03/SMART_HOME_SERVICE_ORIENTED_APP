@@ -1,0 +1,369 @@
+openapi: 3.0.0
+info:
+  title: SmartHome IoT Simulator API
+  description: API documentation for the SmartHome IoT Simulator microservices.
+  version: 1.0.0
+servers:
+  - url: http://localhost:5001
+    description: Data Service
+  - url: http://localhost:5002
+    description: Adapter Service (Weather)
+  - url: http://localhost:5003
+    description: Business Logic Service (Analytics)
+  - url: http://localhost:5004
+    description: Process Service (Dashboard)
+  - url: http://localhost:5005
+    description: Adapter Service (Telegram)
+  - url: http://localhost:5006
+    description: Business Logic Service (Energy Optimizer)
+  - url: http://localhost:5010
+    description: Business Logic Service (Auth)
+
+tags:
+  - name: Data Service
+    description: Persistence and retrieval of device data (Port 5001)
+  - name: Weather Adapter
+    description: External weather data integration (Port 5002)
+  - name: Telegram Adapter
+    description: Notification service (Port 5005)
+  - name: Analytics Service
+    description: Anomaly detection (Port 5003)
+  - name: Energy Optimizer
+    description: Energy efficiency logic (Port 5006)
+  - name: Auth Service
+    description: Authentication and token generation (Port 5010)
+  - name: Dashboard Process
+    description: Orchestration for UI (Port 5004)
+
+paths:
+  # --- Data Service ---
+  /devices:
+    get:
+      tags: [Data Service]
+      summary: Get all devices
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    type:
+                      type: string
+                    status:
+                      type: string
+    post:
+      tags: [Data Service]
+      summary: Register a new device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: string
+                type:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '201':
+          description: Device registered
+
+  /readings:
+    post:
+      tags: [Data Service]
+      summary: Add a sensor reading
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: string
+                value:
+                  type: number
+                timestamp:
+                  type: number
+      responses:
+        '201':
+          description: Reading added
+
+  /readings/latest:
+    get:
+      tags: [Data Service]
+      summary: Get latest reading for a device
+      parameters:
+        - in: query
+          name: device_id
+          schema:
+            type: string
+          required: true
+      responses:
+        '200':
+          description: Latest reading
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  device_id:
+                    type: string
+                  value:
+                    type: number
+                  timestamp:
+                    type: number
+
+  /devices/command:
+    post:
+      tags: [Data Service]
+      summary: Send a command to a device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: string
+                command:
+                  type: string
+      responses:
+        '200':
+          description: Command processed
+
+  # --- Weather Adapter ---
+  /current_weather:
+    get:
+      tags: [Weather Adapter]
+      summary: Get current weather for a city
+      parameters:
+        - in: query
+          name: city
+          schema:
+            type: string
+            default: Milan
+      responses:
+        '200':
+          description: Weather data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  temp_c:
+                    type: number
+                  condition:
+                    type: string
+                  city:
+                    type: string
+
+  # --- Telegram Adapter ---
+  /send_message:
+    post:
+      tags: [Telegram Adapter]
+      summary: Send a message via Telegram Bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      responses:
+        '200':
+          description: Message sent
+
+  # --- Analytics Service ---
+  /analyze:
+    post:
+      tags: [Analytics Service]
+      summary: Analyze data for anomalies
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_type:
+                  type: string
+                value:
+                  type: number
+      responses:
+        '200':
+          description: Analysis result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  has_anomalies:
+                    type: boolean
+                  anomalies:
+                    type: array
+                    items:
+                      type: string
+
+  # --- Energy Optimizer ---
+  /optimize_energy:
+    post:
+      tags: [Energy Optimizer]
+      summary: Get energy optimization advice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                indoor_temp:
+                  type: number
+                outdoor_temp:
+                  type: number
+                window_states:
+                  type: object
+                  additionalProperties:
+                    type: string
+                boiler_status:
+                  type: string
+                ac_status:
+                  type: string
+                season_mode:
+                  type: string
+      responses:
+        '200':
+          description: Optimization advice
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  should_act:
+                    type: boolean
+                  efficiency_score:
+                    type: number
+                  details:
+                    type: array
+                    items:
+                      type: string
+
+  # --- Auth Service ---
+  /login:
+    post:
+      tags: [Auth Service]
+      summary: Login to get JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Token generated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+
+  /verify:
+    post:
+      tags: [Auth Service]
+      summary: Verify JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Token valid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  user:
+                    type: string
+
+  # --- Dashboard Process ---
+  /api/home_status:
+    get:
+      tags: [Dashboard Process]
+      summary: Get aggregated home status
+      parameters:
+        - in: query
+          name: city
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Home status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                  alerts:
+                    type: array
+                    items:
+                      type: string
+                  advice:
+                    type: string
+
+  /settings:
+    post:
+      tags: [Dashboard Process]
+      summary: Update system settings
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                season_mode:
+                  type: string
+      responses:
+        '200':
+          description: Settings updated
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
