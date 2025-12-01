@@ -1,0 +1,13 @@
+Starting all services...
+Device Service started (PID: 8771)
+Sensor Gen started (PID: 8772)
+Weather Adapter started (PID: 8773)
+Telegram Adapter started (PID: 8774)
+Analytics Service started (PID: 8775)
+Energy Optimizer started (PID: 8776)
+Auth Service started (PID: 8777)
+Dashboard Process started (PID: 8778)
+Alert Process started (PID: 8779)
+Web App started (PID: 8780)
+All services running. Press Enter to stop...
+All services stopped.

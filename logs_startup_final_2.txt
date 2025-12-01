@@ -1,0 +1,13 @@
+Starting all services...
+Device Service started (PID: 14629)
+Sensor Gen started (PID: 14630)
+Weather Adapter started (PID: 14631)
+Telegram Adapter started (PID: 14632)
+Analytics Service started (PID: 14633)
+Energy Optimizer started (PID: 14634)
+Auth Service started (PID: 14635)
+Dashboard Process started (PID: 14636)
+Alert Process started (PID: 14637)
+Web App started (PID: 14638)
+All services running. Waiting...
+All services stopped.

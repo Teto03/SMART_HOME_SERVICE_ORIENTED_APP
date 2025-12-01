@@ -1,0 +1,15 @@
+ * Tip: There are .env files present. Install python-dotenv to use them.
+Starting Dashboard Process on port 5004...
+ * Serving Flask app 'dashboard_process'
+ * Debug mode: on
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:5004
+ * Running on http://192.168.1.59:5004
+[33mPress CTRL+C to quit[0m
+ * Restarting with stat
+ * Tip: There are .env files present. Install python-dotenv to use them.
+ * Debugger is active!
+ * Debugger PIN: 123-158-059
+127.0.0.1 - - [21/Nov/2025 09:05:08] "POST /settings HTTP/1.1" 200 -
+127.0.0.1 - - [21/Nov/2025 09:05:08] "GET /api/home_status HTTP/1.1" 200 -
