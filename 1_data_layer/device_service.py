@@ -85,9 +85,11 @@ def get_latest_reading():
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT device_id, value, timestamp FROM readings 
-            WHERE device_id = ? 
-            ORDER BY timestamp DESC LIMIT 1
+            SELECT r.device_id, r.value, r.timestamp, d.status 
+            FROM readings r
+            JOIN devices d ON r.device_id = d.id
+            WHERE r.device_id = ? 
+            ORDER BY r.timestamp DESC LIMIT 1
         ''', (device_id,))
         row = cursor.fetchone()
         
@@ -95,9 +97,20 @@ def get_latest_reading():
             return jsonify({
                 "device_id": row[0],
                 "value": row[1],
-                "timestamp": row[2]
+                "timestamp": row[2],
+                "status": row[3]
             })
         else:
+            # Fallback if no readings but device exists
+            cursor.execute('SELECT id, status FROM devices WHERE id = ?', (device_id,))
+            dev_row = cursor.fetchone()
+            if dev_row:
+                 return jsonify({
+                    "device_id": dev_row[0],
+                    "value": 0.0, # Default value
+                    "timestamp": time.time(),
+                    "status": dev_row[1]
+                })
             return jsonify({"error": "No readings found"}), 404
 
 @app.route('/devices/command', methods=['POST'])
