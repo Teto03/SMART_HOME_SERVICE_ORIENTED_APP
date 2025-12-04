@@ -1,4 +1,5 @@
-flask
-requests
-python-dotenv
-pyjwt
+COSE DA IMPLEMENTARE:
+
+- transizione da sql lite a mongo db usare json ovunque 
+- sistemare il codice e pulire i file 
+- aumentare la logica di business con nuovi dispositivi da gestire  !!!! QUESTA PARTE ANCORA TUTTA DA DECIDERE
