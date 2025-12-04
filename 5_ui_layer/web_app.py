@@ -52,6 +52,14 @@ def login_proxy():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/register', methods=['POST'])
+def register_proxy():
+    try:
+        res = requests.post(f"{PROCESS_BASE_URL}/api/register", json=request.json)
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/settings', methods=['POST'])
 def settings_proxy():
     try:
