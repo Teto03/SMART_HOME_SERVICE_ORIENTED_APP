@@ -46,6 +46,14 @@ def login_proxy():
     except:
         return jsonify({"error": "Auth Service unreachable"}), 500
 
+@app.route('/api/register', methods=['POST'])
+def register_proxy():
+    try:
+        res = requests.post(f"{AUTH_SERVICE_URL}/register", json=request.json)
+        return jsonify(res.json()), res.status_code
+    except:
+        return jsonify({"error": "Auth Service unreachable"}), 500
+
 @app.route('/settings', methods=['POST'])
 @require_auth
 def update_settings():
