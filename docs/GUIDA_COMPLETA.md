@@ -42,7 +42,7 @@ Se preferisci fare a mano o devi modificare le chiavi:
 Dalla cartella principale del progetto, esegui:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
 Attendi qualche istante. Docker scaricherà le immagini necessarie e avvierà tutti i 7 microservizi.
