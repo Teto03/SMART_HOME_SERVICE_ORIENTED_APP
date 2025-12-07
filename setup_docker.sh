@@ -2,13 +2,7 @@
 
 echo "Setting up Docker environment..."
 
-# Create users.db if it doesn't exist
-if [ ! -f users.db ]; then
-    echo "Creating users.db..."
-    touch users.db
-else
-    echo "users.db already exists."
-fi
+# users.db creation removed (using MongoDB)
 
 # Create .env if it doesn't exist (copy from example)
 if [ ! -f .env ]; then
