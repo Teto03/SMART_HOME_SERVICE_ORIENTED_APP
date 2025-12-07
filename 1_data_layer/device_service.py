@@ -1,30 +1,26 @@
-import sqlite3
 from flask import Flask, request, jsonify
 import time
+import os
+from pymongo import MongoClient
+from bson.json_util import dumps
 
 app = Flask(__name__)
-DB_PATH = 'devices.db'
+
+MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
+DB_NAME = 'devices_db'
+
+def get_db():
+    client = MongoClient(MONGO_URI)
+    return client[DB_NAME]
 
 def init_db():
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS devices (
-                id TEXT PRIMARY KEY,
-                type TEXT,
-                status TEXT
-            )
-        ''')
-        cursor.execute('''
-            CREATE TABLE IF NOT EXISTS readings (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                device_id TEXT,
-                value REAL,
-                timestamp REAL,
-                FOREIGN KEY(device_id) REFERENCES devices(id)
-            )
-        ''')
-        conn.commit()
+    # MongoDB creates collections lazily, but we can ensure indexes here if needed
+    db = get_db()
+    # Ensure device_id is unique in devices collection if we were enforcing it strictly,
+    # but `INSERT OR REPLACE` logic suggests we just upsert.
+    # We can create an index on timestamp for readings for faster latest reading queries.
+    db.readings.create_index([("device_id", 1), ("timestamp", -1)])
+    print("Connected to MongoDB.")
 
 @app.route('/devices', methods=['POST'])
 def register_device():
@@ -36,24 +32,23 @@ def register_device():
     if not device_id or not device_type:
         return jsonify({"error": "Missing device_id or type"}), 400
         
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        try:
-            cursor.execute('INSERT OR REPLACE INTO devices (id, type, status) VALUES (?, ?, ?)', 
-                           (device_id, device_type, status))
-            conn.commit()
-            return jsonify({"message": "Device registered", "device_id": device_id}), 201
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+    db = get_db()
+    try:
+        db.devices.update_one(
+            {"_id": device_id},
+            {"$set": {"type": device_type, "status": status}},
+            upsert=True
+        )
+        return jsonify({"message": "Device registered", "device_id": device_id}), 201
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/devices', methods=['GET'])
 def get_devices():
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute('SELECT * FROM devices')
-        rows = cursor.fetchall()
-        devices = [{"id": r[0], "type": r[1], "status": r[2]} for r in rows]
-        return jsonify(devices)
+    db = get_db()
+    devices_cursor = db.devices.find()
+    devices = [{"id": d["_id"], "type": d.get("type"), "status": d.get("status")} for d in devices_cursor]
+    return jsonify(devices)
 
 @app.route('/readings', methods=['POST'])
 def add_reading():
@@ -65,16 +60,24 @@ def add_reading():
     if not device_id or value is None:
         return jsonify({"error": "Missing device_id or value"}), 400
         
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        # Auto-register device if not exists (for simplicity in simulation)
-        cursor.execute('INSERT OR IGNORE INTO devices (id, type, status) VALUES (?, ?, ?)', 
-                       (device_id, 'unknown', 'active'))
-        
-        cursor.execute('INSERT INTO readings (device_id, value, timestamp) VALUES (?, ?, ?)', 
-                       (device_id, value, timestamp))
-        conn.commit()
-        return jsonify({"message": "Reading added"}), 201
+    db = get_db()
+    
+    # Auto-register device if not exists (simulating INSERT OR IGNORE)
+    # in mongo updates with upsert=True is easiest, but we only want to set if NEW.
+    # $setOnInsert is perfect for this.
+    db.devices.update_one(
+        {"_id": device_id},
+        {"$setOnInsert": {"type": "unknown", "status": "active"}},
+        upsert=True
+    )
+    
+    db.readings.insert_one({
+        "device_id": device_id,
+        "value": value,
+        "timestamp": timestamp
+    })
+    
+    return jsonify({"message": "Reading added"}), 201
 
 @app.route('/readings/latest', methods=['GET'])
 def get_latest_reading():
@@ -82,36 +85,34 @@ def get_latest_reading():
     if not device_id:
         return jsonify({"error": "Missing device_id parameter"}), 400
         
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        cursor.execute('''
-            SELECT r.device_id, r.value, r.timestamp, d.status 
-            FROM readings r
-            JOIN devices d ON r.device_id = d.id
-            WHERE r.device_id = ? 
-            ORDER BY r.timestamp DESC LIMIT 1
-        ''', (device_id,))
-        row = cursor.fetchone()
-        
-        if row:
-            return jsonify({
-                "device_id": row[0],
-                "value": row[1],
-                "timestamp": row[2],
-                "status": row[3]
+    db = get_db()
+    # Get latest reading
+    reading = db.readings.find_one(
+        {"device_id": device_id},
+        sort=[("timestamp", -1)]
+    )
+    
+    # Get device status
+    device = db.devices.find_one({"_id": device_id})
+    device_status = device.get("status") if device else "unknown"
+    
+    if reading:
+        return jsonify({
+            "device_id": reading["device_id"],
+            "value": reading["value"],
+            "timestamp": reading["timestamp"],
+            "status": device_status
+        })
+    else:
+        # Fallback if no readings but device exists
+        if device:
+             return jsonify({
+                "device_id": device["_id"],
+                "value": 0.0, # Default value
+                "timestamp": time.time(),
+                "status": device_status
             })
-        else:
-            # Fallback if no readings but device exists
-            cursor.execute('SELECT id, status FROM devices WHERE id = ?', (device_id,))
-            dev_row = cursor.fetchone()
-            if dev_row:
-                 return jsonify({
-                    "device_id": dev_row[0],
-                    "value": 0.0, # Default value
-                    "timestamp": time.time(),
-                    "status": dev_row[1]
-                })
-            return jsonify({"error": "No readings found"}), 404
+        return jsonify({"error": "No readings found"}), 404
 
 @app.route('/devices/command', methods=['POST'])
 def send_command():
@@ -122,21 +123,23 @@ def send_command():
     if not device_id or not command:
         return jsonify({"error": "Missing device_id or command"}), 400
         
-    # In a real scenario, this would talk to the hardware.
-    # Here we just update the device status in DB or log it.
-    # For simulation purposes, we can treat the command as a status update.
+    db = get_db()
     
-    with sqlite3.connect(DB_PATH) as conn:
-        cursor = conn.cursor()
-        # Update status
-        cursor.execute('UPDATE devices SET status = ? WHERE id = ?', (command, device_id))
-        
-        # Also log as a reading so we can see it in history/latest
-        # Value mapping: ON/OPEN=1, OFF/CLOSE=0
-        val = 1.0 if command in ["ON", "OPEN"] else 0.0
-        cursor.execute('INSERT INTO readings (device_id, value, timestamp) VALUES (?, ?, ?)', 
-                       (device_id, val, time.time()))
-        conn.commit()
+    # Update status
+    db.devices.update_one(
+        {"_id": device_id},
+        {"$set": {"status": command}}
+    )
+    
+    # Also log as a reading so we can see it in history/latest
+    # Value mapping: ON/OPEN=1, OFF/CLOSE=0
+    val = 1.0 if command in ["ON", "OPEN"] else 0.0
+    
+    db.readings.insert_one({
+        "device_id": device_id,
+        "value": val,
+        "timestamp": time.time()
+    })
         
     return jsonify({"message": f"Command {command} sent to {device_id}", "new_status": command})
 
