@@ -60,6 +60,17 @@ Per fermare il sistema, premi `Ctrl+C` nel terminale, oppure esegui in un altro 
 docker compose down
 ```
 
+### 5. Persistenza dei Dati
+
+Il sistema utilizza **MongoDB** come database.
+I dati non vengono salvati in un file locale (come `users.db`), ma in un **Docker Volume** gestito internamente da Docker.
+
+- **Nome del Volume**: `mongo_data`
+- **Comportamento**:
+  - Se spegni il sistema (`docker compose down`): **I dati rimangono salvi.**
+  - Se riavvii il computer: **I dati rimangono salvi.**
+  - I dati vengono cancellati **SOLO** se esegui esplicitamente: `docker compose down -v` (con il flag `-v` che sta per volumes).
+
 ---
 
 ## 🐍 Metodo 2: Esecuzione Locale (Python)
