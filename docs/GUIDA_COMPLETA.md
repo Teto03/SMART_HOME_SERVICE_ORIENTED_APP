@@ -50,7 +50,7 @@ Attendi qualche istante. Docker scaricherà le immagini necessarie e avvierà tu
 ### 3. Accesso
 
 Apri il browser e vai su:
-👉 **<http://localhost:5000>**
+👉 **<http://localhost:5008>**
 
 ### 4. Arresto
 
