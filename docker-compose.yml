@@ -37,14 +37,6 @@ services:
       - ./logs:/app/logs
 
   # --- Business Logic Layer ---
-  analytics-service:
-    build: .
-    command: python3 3_business_logic_layer/analytics_service.py
-    ports:
-      - "5003:5003"
-    volumes:
-      - ./logs:/app/logs
-
   energy-optimizer:
     build: .
     command: python3 3_business_logic_layer/energy_optimizer.py
@@ -86,11 +78,9 @@ services:
     command: python3 4_process_layer/alert_process.py
     environment:
       - DATA_SERVICE_URL=http://data-service:5001
-      - ANALYTICS_SERVICE_URL=http://analytics-service:5003
       - TELEGRAM_ADAPTER_URL=http://telegram-adapter:5005
     depends_on:
       - data-service
-      - analytics-service
       - telegram-adapter
     volumes:
       - ./logs:/app/logs
@@ -100,7 +90,7 @@ services:
     build: .
     command: python3 5_ui_layer/web_app.py
     ports:
-      - "5000:5000"
+      - "5008:5008"
     environment:
       - DASHBOARD_PROCESS_URL=http://dashboard-process:5004/api/home_status
       - PROCESS_BASE_URL=http://dashboard-process:5004

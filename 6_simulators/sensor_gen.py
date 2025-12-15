@@ -61,6 +61,7 @@ if __name__ == "__main__":
         {"device_id": "bedroom_window", "type": "window", "status": "CLOSED"},
         {"device_id": "kitchen_window", "type": "window", "status": "CLOSED"},
         {"device_id": "smart_heater_1", "type": "heater", "status": "OFF"},
+        {"device_id": "main_heater", "type": "heater", "status": "OFF"},
         {"device_id": "air_conditioner", "type": "ac", "status": "OFF"}
     ]
 

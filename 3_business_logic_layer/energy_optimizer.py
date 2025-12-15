@@ -1,230 +1,247 @@
-from flask import Flask, request, jsonify
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional, Tuple
+
+from flask import Flask, jsonify, request
 
 app = Flask(__name__)
 
-@app.route('/optimize_energy', methods=['POST'])
+
+ALLOWED_SEASON_MODES = {"auto", "summer", "winter", "mild"}
+
+
+@dataclass
+class WindowMetrics:
+    count: int
+    any_open: bool
+    all_open: bool
+
+
+@dataclass
+class SeasonContext:
+    current: str
+    is_summer: bool
+    is_winter: bool
+    is_mild: bool
+
+
+@dataclass
+class OptimizationContext:
+    indoor_temp: float
+    outdoor_temp: float
+    window_states: Dict[str, str]
+    boiler_status: str
+    ac_status: str
+    season_mode: str
+    humidity: float = 50.0
+    @property
+    def window_metrics(self) -> WindowMetrics:
+        open_count = sum(1 for status in self.window_states.values() if status == "OPEN")
+        any_open = open_count > 0
+        all_open = bool(self.window_states) and open_count == len(self.window_states)
+        return WindowMetrics(open_count, any_open, all_open)
+
+
+@dataclass
+class EvaluationResult:
+    message: str
+    should_act: bool
+    efficiency_score: int
+
+def clamp_score(score: float) -> int:
+    return int(max(0, min(10, round(score))))
+
+# Create the context with states of the devices and the season selected
+def build_context(data: Dict) -> OptimizationContext:
+    indoor_temp = data.get("indoor_temp")
+    outdoor_temp = data.get("outdoor_temp")
+    window_states = data.get("window_states")
+    boiler_status = str(data.get("boiler_status", "UNKNOWN")).upper()
+    ac_status = str(data.get("ac_status", "UNKNOWN")).upper()
+    season_mode = str(data.get("season_mode", "auto")).lower()
+    if season_mode not in ALLOWED_SEASON_MODES:
+        season_mode = "auto"
+    return OptimizationContext(
+        indoor_temp=indoor_temp,
+        outdoor_temp=outdoor_temp,
+        window_states=window_states,
+        boiler_status=boiler_status,
+        ac_status=ac_status,
+        season_mode=season_mode,
+    )
+
+
+def detect_season(ctx: OptimizationContext) -> SeasonContext:
+    if ctx.season_mode == "summer":
+        current = "summer"
+    elif ctx.season_mode == "winter":
+        current = "winter"
+    elif ctx.season_mode == "mild":
+        current = "mild"
+    else: # if the season is in auto, detect it by the outside temperature
+        if ctx.outdoor_temp > 25:
+            current = "summer"
+        elif ctx.outdoor_temp < 15:
+            current = "winter"
+        else:
+            current = "mild"
+    return SeasonContext(
+        current=current,
+        is_summer = current == "summer",
+        is_winter = current == "winter",
+        is_mild = current == "mild",
+    )
+
+
+def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> Optional[EvaluationResult]:
+    
+    metrics = ctx.window_metrics
+    if season.is_summer and ctx.boiler_status == "ON":
+        return EvaluationResult(
+            message="Heating is ON during Summer!",
+            should_act=True,
+            efficiency_score=1
+        )
+    if season.is_winter and ctx.ac_status == "ON":
+        return EvaluationResult(
+            message="AC in on during Winter!",
+            should_act=True,
+            efficiency_score=1
+        )
+    if ctx.ac_status == "ON" and ctx.boiler_status == "ON":
+        return EvaluationResult(
+            message="Heating and Cooling are ON simultaneously!",
+            should_act=True,
+            efficiency_score=1
+        )
+    if ctx.ac_status == "ON" and metrics.any_open:
+        window_count_msg = f"({metrics.count} window{'s' if metrics.count > 1 else ''} open)"
+        return EvaluationResult(
+            message=f"AC is ON while windows are OPEN",
+            should_act=True,
+            efficiency_score=2 if metrics.count == 1 else 1
+        )
+    if ctx.boiler_status == "ON" and metrics.count >= 1:
+        return EvaluationResult(
+            message=f"Boiler is ON with windows OPEN",
+            should_act=True,
+            efficiency_score=1
+        )
+    return None
+
+
+def evaluate_summer(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
+    if ctx.indoor_temp > 26 and ctx.ac_status != "ON":
+        return EvaluationResult(
+            message="Temperature is too high! Turn on AC",
+            should_act=True,
+            efficiency_score=5
+        )
+    if ctx.indoor_temp > ctx.outdoor_temp and not (metrics.any_open) and ctx.ac_status == "ON":
+        return EvaluationResult(
+            message="It's cooler outside! Open windows instead of using AC.",
+            should_act=True,
+            efficiency_score=6
+        )
+    if metrics.any_open and ctx.ac_status != "ON":
+        return EvaluationResult(
+            message=f"Good! Windows are open for natural ventilation in summer.",
+            should_act=False,
+            efficiency_score=9
+        )
+    return EvaluationResult(
+        message=f"System stable. Summer mode. Indoor: {ctx.indoor_temp}°C, Outdoor: {ctx.outdoor_temp}°C.",
+        should_act=False,
+        efficiency_score=7
+    )
+
+
+def evaluate_winter(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
+    if metrics.any_open:
+        return EvaluationResult(
+            message="Windows open in cold weather!",
+            should_act=True,
+            efficiency_score=3
+        )
+    if ctx.boiler_status == "ON" and ctx.indoor_temp >= 24:
+        return EvaluationResult(
+            message="High temperature inside! Turn off boiler.",
+            should_act=True,
+            efficiency_score=2
+        )
+    return EvaluationResult(
+        message=f"System stable. Winter mode. Indoor: {ctx.indoor_temp}°C, Outdoor: {ctx.outdoor_temp}°C.",
+        should_act=False,
+        efficiency_score=7
+    )
+
+
+def evaluate_mild(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
+    if ctx.indoor_temp > ctx.outdoor_temp + 3 and not (metrics.any_open) and ctx.ac_status == "ON":
+        return EvaluationResult(
+            message=f"It's cool outside! Open windows instead of using AC",
+            should_act=True,
+            efficiency_score=6
+        )
+    if ctx.outdoor_temp > ctx.indoor_temp + 3 and not metrics.any_open and ctx.indoor_temp < 20:
+        return EvaluationResult(
+            message=f"It's warmer outside! Open windows instead of using boiler",
+            should_act=True,
+            efficiency_score=6
+        )
+    return EvaluationResult(
+        message=f"System stable. Mild weather. Indoor: {ctx.indoor_temp}°C, Outdoor: {ctx.outdoor_temp}°C.",
+        should_act=False,
+        efficiency_score=8
+    )
+
+
+def evaluate_default(ctx: OptimizationContext) -> EvaluationResult:
+    return EvaluationResult(
+        message=f"System stable. Indoor: {ctx.indoor_temp}°C, Outdoor: {ctx.outdoor_temp}°C.",
+        should_act=False,
+        efficiency_score=10
+    )
+
+
+def evaluate_seasonal(ctx: OptimizationContext, season: SeasonContext) -> EvaluationResult:
+    metrics = ctx.window_metrics
+    if season.is_summer:
+        return evaluate_summer(ctx, metrics)
+    if season.is_winter:
+        return evaluate_winter(ctx, metrics)
+    if season.is_mild:
+        return evaluate_mild(ctx, metrics)
+    return evaluate_default(ctx)
+
+
+def run_evaluation(ctx: OptimizationContext) -> Tuple[EvaluationResult, SeasonContext]:
+    season = detect_season(ctx)
+    result = build_critical_checks(ctx, season)
+    if result is None:
+        result = evaluate_seasonal(ctx, season)
+    result.efficiency_score = clamp_score(result.efficiency_score)
+    return result, season
+
+
+@app.route("/optimize_energy", methods=["POST"])
 def optimize_energy():
-    data = request.json
-    indoor_temp = data.get('indoor_temp')
-    outdoor_temp = data.get('outdoor_temp')
-    
-    # Device states
-    window_states = data.get('window_states', {})  # Dict of window_id: status
-    boiler_status = data.get('boiler_status', 'UNKNOWN')
-    ac_status = data.get('ac_status', 'UNKNOWN')
-    season_mode = data.get('season_mode', 'auto')  # auto, summer, winter, mild
-    
-    if indoor_temp is None or outdoor_temp is None:
-        return jsonify({"error": "Missing temperature data"}), 400
+    try:
+        ctx = build_context(request.json or {})
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
-    # Calculate window metrics
-    windows_open_count = sum(1 for status in window_states.values() if status == "OPEN")
-    any_window_open = windows_open_count > 0
-    all_windows_open = windows_open_count == len(window_states) if window_states else False
-    
-    # Enhanced Logic with season detection
-    humidity = 50  # Mock humidity
-    comfort_index = indoor_temp + (0.55 - 0.0055 * humidity) * (indoor_temp - 14.5)
-    
-    efficiency_score = 10
-    reasons = []
-    advice = ""
-    should_act = False
-    
-    # Season detection
-    if season_mode == 'summer':
-        is_summer = True
-        is_winter = False
-        is_mild = False
-    elif season_mode == 'winter':
-        is_summer = False
-        is_winter = True
-        is_mild = False
-    elif season_mode == 'mild':
-        is_summer = False
-        is_winter = False
-        is_mild = True
-    else: # auto
-        is_summer = outdoor_temp > 25
-        is_winter = outdoor_temp < 15
-        is_mild = 15 <= outdoor_temp <= 25
-    
-    # ============================================
-    # SEASON-SPECIFIC CRITICAL CHECKS (Priority 1)
-    # ============================================
-    
-    # SUMMER CRITICAL
-    if is_summer and boiler_status == "ON":
-        advice = "🚨 CRITICAL WASTE: Heating (Boiler) is ON during Summer! Turn it off immediately!"
-        should_act = True
-        efficiency_score = 0
-        reasons.append("Heating is completely unnecessary in summer.")
-        
-    # WINTER CRITICAL
-    elif is_winter and ac_status == "ON":
-        advice = "🚨 CRITICAL WASTE: AC is ON during Winter! Turn it off immediately!"
-        should_act = True
-        efficiency_score = 0
-        reasons.append("Cooling is completely unnecessary in winter.")
+    result, season = run_evaluation(ctx)
+    return jsonify(
+        {
+            "message": result.message,
+            "should_act": result.should_act,
+            "efficiency_score": result.efficiency_score,
+            "season": season.current,
+            "windows_open_count": ctx.window_metrics.count,
+        }
+    )
 
-    # ============================================
-    # GENERAL CRITICAL WASTAGE (Priority 2)
-    # ============================================
-    
-    # 1. AC + Boiler both ON
-    elif ac_status == "ON" and boiler_status == "ON":
-        advice = "🚨 CRITICAL WASTE: Heating (Boiler) AND Cooling (AC) running simultaneously! Turn one off immediately!"
-        should_act = True
-        efficiency_score = 0
-        reasons.append("Heating and cooling at the same time wastes massive energy.")
-        reasons.append("Decide if you want to heat or cool, not both.")
-    
-    # 2. AC ON with windows open
-    elif ac_status == "ON" and any_window_open:
-        window_count_msg = f"({windows_open_count} window{'s' if windows_open_count > 1 else ''} open)"
-        advice = f"⚠️ CRITICAL WASTE: AC is ON while windows are OPEN {window_count_msg}! Close all windows or turn off AC!"
-        should_act = True
-        efficiency_score = 1 if windows_open_count == 1 else 0
-        reasons.append("Air conditioning cannot work efficiently with open windows.")
-        reasons.append("You're cooling the entire neighborhood, not just your home.")
-    
-    # 3. Boiler ON with multiple windows open
-    elif boiler_status == "ON" and windows_open_count >= 2:
-        advice = f"⚠️ SEVERE WASTE: Boiler is ON with {windows_open_count} windows OPEN! Close windows immediately!"
-        should_act = True
-        efficiency_score = 0
-        reasons.append(f"{windows_open_count} open windows cause massive heat loss.")
-        reasons.append("Boiler is fighting against open windows - very wasteful.")
 
-    # ============================================
-    # SEASON-SPECIFIC WARNINGS & ADVICE (Priority 3)
-    # ============================================
-
-    # SUMMER ADVICE
-    elif is_summer:
-        if indoor_temp > 26 and ac_status != "ON":
-            advice = "☀️ Hot day! Indoor temperature is high. Consider turning on AC or opening windows for ventilation."
-            should_act = True
-            efficiency_score = 5
-            reasons.append(f"Outdoor: {outdoor_temp}°C, Indoor: {indoor_temp}°C")
-        
-        elif indoor_temp > outdoor_temp and not any_window_open and ac_status != "ON":
-            advice = "💡 It's cooler outside! Open windows for free natural cooling instead of using AC."
-            should_act = True
-            efficiency_score = 6
-            reasons.append("Natural ventilation is more efficient than AC.")
-        
-        elif indoor_temp < outdoor_temp and any_window_open and ac_status == "ON":
-             advice = "⚠️ Energy Waste: AC is ON and windows are OPEN while it's hotter outside! Close windows."
-             should_act = True
-             efficiency_score = 2
-             reasons.append("You are letting hot air in while trying to cool.")
-
-        elif any_window_open and ac_status != "ON":
-            advice = f"✓ Good! {windows_open_count} window{'s' if windows_open_count > 1 else ''} open for natural ventilation in summer."
-            efficiency_score = 9
-            reasons.append("Using natural cooling - very efficient!")
-            
-        # Fallback to general checks if no specific summer advice
-        elif boiler_status == "ON" and windows_open_count == 1:
-             # This case is technically covered by Summer Critical (Boiler ON), but kept for completeness logic flow
-             advice = "⚠️ Energy Waste: Boiler is ON but a window is OPEN! Close the window to retain heat."
-             should_act = True
-             efficiency_score = 3
-             reasons.append("Even one open window causes significant heat loss.")
-        
-        elif ac_status == "ON" and indoor_temp <= 24:
-            advice = "⚠️ AC running unnecessarily! Indoor temperature is already comfortable. Turn off AC."
-            should_act = True
-            efficiency_score = 3
-            reasons.append(f"Indoor temp ({indoor_temp}°C) is already optimal.")
-
-        else:
-            advice = f"System stable. Summer mode. Indoor: {indoor_temp}°C, Outdoor: {outdoor_temp}°C."
-            efficiency_score = 7
-
-    # WINTER ADVICE
-    elif is_winter:
-        if any_window_open:
-            advice = "🥶 Windows open in cold weather! Close them to prevent heat loss."
-            should_act = True
-            efficiency_score = 3
-            reasons.append(f"Outdoor temperature is {outdoor_temp}°C - too cold for open windows.")
-        
-        elif indoor_temp < 19 and boiler_status != "ON":
-            advice = "🌡️ Indoor temperature is low. Consider turning on heating."
-            should_act = True
-            efficiency_score = 6
-            reasons.append(f"Indoor: {indoor_temp}°C - below comfortable range.")
-        
-        elif boiler_status == "ON" and indoor_temp >= 20:
-            advice = "✓ Good! Heating is maintaining comfortable temperature."
-            efficiency_score = 8
-            
-        # Fallback to general checks
-        elif boiler_status == "ON" and indoor_temp >= 24:
-            advice = "⚠️ Boiler running unnecessarily! Indoor temperature is already warm. Turn off boiler."
-            should_act = True
-            efficiency_score = 2
-            reasons.append(f"Indoor temp ({indoor_temp}°C) is already high - no heating needed.")
-
-        else:
-            advice = f"System stable. Winter mode. Indoor: {indoor_temp}°C, Outdoor: {outdoor_temp}°C."
-            efficiency_score = 7
-
-    # MILD ADVICE
-    elif is_mild:
-        if any_window_open and boiler_status == "OFF" and ac_status == "OFF":
-            advice = f"✅ EXCELLENT! {windows_open_count} window{'s' if windows_open_count > 1 else ''} open for natural ventilation. Both HVAC systems off. Perfect!"
-            efficiency_score = 10
-            reasons.append("Mild weather + natural ventilation = maximum efficiency!")
-            reasons.append("You're using zero energy for climate control.")
-        elif not any_window_open and (boiler_status == "ON" or ac_status == "ON"):
-            advice = "💡 Perfect weather outside! Turn off HVAC and open windows for free natural comfort."
-            should_act = True
-            efficiency_score = 4
-            reasons.append(f"Outdoor temp ({outdoor_temp}°C) is ideal - no need for heating or cooling.")
-        elif indoor_temp > outdoor_temp + 3 and not any_window_open:
-            advice = f"💡 It's cooler outside ({outdoor_temp}°C vs {indoor_temp}°C inside). Open windows for free cooling!"
-            should_act = True
-            efficiency_score = 6
-        elif outdoor_temp > indoor_temp + 3 and not any_window_open and indoor_temp < 20:
-            advice = f"💡 It's warmer outside ({outdoor_temp}°C vs {indoor_temp}°C inside). Open windows for free warming!"
-            should_act = True
-            efficiency_score = 6
-        else:
-            advice = f"System stable. Mild weather - great for natural ventilation! Indoor: {indoor_temp}°C, Outdoor: {outdoor_temp}°C."
-            efficiency_score = 8
-    
-    # ============================================
-    # DEFAULT / OPTIMAL STATE
-    # ============================================
-    else:
-        if 20 <= indoor_temp <= 24:
-            reasons.append("Indoor temperature is in optimal comfort range.")
-            efficiency_score += 1
-        elif indoor_temp < 20:
-            reasons.append("Indoor temperature is a bit cool.")
-        else:
-            reasons.append("Indoor temperature is a bit warm.")
-        
-        advice = f"System stable. Comfort Index: {comfort_index:.1f}. Indoor: {indoor_temp}°C, Outdoor: {outdoor_temp}°C."
-        efficiency_score = max(efficiency_score, 7)
-    
-    # Add window status to details
-    if windows_open_count > 0:
-        window_names = [k.replace('_', ' ').title() for k, v in window_states.items() if v == "OPEN"]
-        reasons.append(f"Windows open: {', '.join(window_names)}")
-    
-    return jsonify({
-        "message": advice,
-        "should_act": should_act,
-        "efficiency_score": max(0, min(10, efficiency_score)),  # Clamp 0-10
-        "details": reasons,
-        "season": "summer" if is_summer else ("winter" if is_winter else "mild"),
-        "windows_open_count": windows_open_count
-    })
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("Starting Energy Optimizer on port 5006...")
-    app.run(host='0.0.0.0', port=5006, debug=True)
+    app.run(host="0.0.0.0", port=5006, debug=True)

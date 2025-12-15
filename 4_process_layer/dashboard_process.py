@@ -88,7 +88,7 @@ def get_home_status():
         response_data["alerts"].append("Data Service unreachable")
 
     # 2. Get Outdoor Temp
-    outdoor_temp = None
+    outdoor_temp = 10
     try:
         res = requests.get(f"{ADAPTER_SERVICE_URL}/current_weather?city={city}")
         if res.status_code == 200:
@@ -100,7 +100,7 @@ def get_home_status():
             response_data["alerts"].append("Weather data unavailable")
     except:
         response_data["alerts"].append("Weather Adapter unreachable")
-
+   
     # 3. Get Energy Advice
     if indoor_temp is not None and outdoor_temp is not None:
         try:
@@ -125,13 +125,24 @@ def get_home_status():
             # Fetch boiler status
             boiler_status = 'UNKNOWN'
             try:
-                res_boiler = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=smart_heater_1")
-                if res_boiler.status_code == 200:
-                    boiler_data = res_boiler.json()
-                    boiler_status = boiler_data.get("status", "UNKNOWN")
-                    if boiler_status == "UNKNOWN":
-                        val = boiler_data.get("value")
-                        boiler_status = "ON" if val == 1.0 else "OFF" if val == 0.0 else "UNKNOWN"
+                res_smart = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=smart_heater_1")
+                res_main = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=main_heater")
+                if res_smart.ok or res_main.ok:
+                    statuses = []
+                    for res in (res_smart, res_main):
+                        if res.ok:
+                            data = res.json()
+                            status = data.get("status")
+                            if status in ("ON", "OFF"):
+                                statuses.append(status)
+                            else:
+                                val = data.get("value")
+                                if val in (0.0, 1.0):
+                                    statuses.append("ON" if val == 1.0 else "OFF")
+                    if "ON" in statuses:
+                        boiler_status = "ON"
+                    elif "OFF" in statuses:
+                        boiler_status = "OFF"
             except:
                 pass
             
@@ -162,14 +173,13 @@ def get_home_status():
                 response_data["advice"] = data.get("message")
                 response_data["action_required"] = data.get("should_act")
                 response_data["efficiency_score"] = data.get("efficiency_score")
-                response_data["energy_details"] = data.get("details")
                 response_data["season"] = data.get("season")
                 response_data["windows_open_count"] = data.get("windows_open_count")
-                response_data["season_mode"] = current_season_mode
+                response_data["season_mode"] = data.get("season_mode")
         except:
             response_data["alerts"].append("Business Service unreachable")
             
-    response_data["season_mode"] = current_season_mode
+    response_data["season_mode"] = data.get("season_mode")
     return jsonify(response_data)
 
 @app.route('/api/devices', methods=['GET'])

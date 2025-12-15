@@ -22,7 +22,6 @@ The system is strictly organized into four logical layers, complying with the co
 - **Services**:
     - `energy_optimizer.py` (Port 5006): Compares indoor/outdoor conditions to suggest actions.
     - `auth_service.py` (Port 5010): Manages User Authentication (JWT) and Registration.
-    - `analytics_service.py` (Port 5003): Computes usage statistics.
 
 ### 4. Process Centric Services Layer
 - **Role**: Orchestration and User Gateway.
