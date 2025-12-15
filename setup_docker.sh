@@ -2,20 +2,7 @@
 
 echo "Setting up Docker environment..."
 
-# Create local SQLite files if they don't exist (mounted by services)
-if [ ! -f users.db ]; then
-    echo "Creating users.db..."
-    touch users.db
-else
-    echo "users.db already exists."
-fi
-
-if [ ! -f devices.db ]; then
-    echo "Creating devices.db..."
-    touch devices.db
-else
-    echo "devices.db already exists."
-fi
+# users.db creation removed (using MongoDB)
 
 # Create .env if it doesn't exist (copy from example)
 if [ ! -f .env ]; then

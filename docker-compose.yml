@@ -1,12 +1,22 @@
 services:
   # --- Data Layer ---
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
   data-service:
     build: .
     command: python3 1_data_layer/device_service.py
     ports:
       - "5001:5001"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/
+    depends_on:
+      - mongo
     volumes:
-      - ./devices.db:/app/devices.db
       - ./logs:/app/logs
 
   sensor-gen:
@@ -50,9 +60,12 @@ services:
     command: python3 3_business_logic_layer/auth_service.py
     ports:
       - "5010:5010"
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/
+    depends_on:
+      - mongo
     volumes:
       - ./logs:/app/logs
-      - ./users.db:/app/users.db
 
   # --- Process Layer ---
   dashboard-process:
@@ -98,3 +111,6 @@ services:
       - dashboard-process
     volumes:
       - ./logs:/app/logs
+
+volumes:
+  mongo_data:
