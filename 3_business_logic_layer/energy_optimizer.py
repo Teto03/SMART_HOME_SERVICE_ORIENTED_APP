@@ -92,41 +92,50 @@ def detect_season(ctx: OptimizationContext) -> SeasonContext:
     )
 
 
-def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> Optional[EvaluationResult]:
-    
+def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> List[EvaluationResult]:
+    results = []
     metrics = ctx.window_metrics
+    
+    # 1. Seasonal Mismatch Checks
     if season.is_summer and ctx.boiler_status == "ON":
-        return EvaluationResult(
+        results.append(EvaluationResult(
             message="Heating is ON during Summer!",
             should_act=True,
             efficiency_score=1
-        )
+        ))
+    
     if season.is_winter and ctx.ac_status == "ON":
-        return EvaluationResult(
-            message="AC in on during Winter!",
+        results.append(EvaluationResult(
+            message="AC is ON during Winter!",
             should_act=True,
             efficiency_score=1
-        )
+        ))
+
+    # 2. Conflict Checks
     if ctx.ac_status == "ON" and ctx.boiler_status == "ON":
-        return EvaluationResult(
+        results.append(EvaluationResult(
             message="Heating and Cooling are ON simultaneously!",
             should_act=True,
             efficiency_score=1
-        )
+        ))
+
+    # 3. Window Waste Checks
     if ctx.ac_status == "ON" and metrics.any_open:
         window_count_msg = f"({metrics.count} window{'s' if metrics.count > 1 else ''} open)"
-        return EvaluationResult(
-            message=f"AC is ON while windows are OPEN",
+        results.append(EvaluationResult(
+            message=f"AC is ON while windows are OPEN {window_count_msg}",
             should_act=True,
             efficiency_score=2 if metrics.count == 1 else 1
-        )
-    if ctx.boiler_status == "ON" and metrics.count >= 1:
-        return EvaluationResult(
+        ))
+    
+    if ctx.boiler_status == "ON" and metrics.any_open:
+        results.append(EvaluationResult(
             message=f"Boiler is ON with windows OPEN",
             should_act=True,
             efficiency_score=1
-        )
-    return None
+        ))
+
+    return results
 
 
 def evaluate_summer(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
@@ -216,9 +225,20 @@ def evaluate_seasonal(ctx: OptimizationContext, season: SeasonContext) -> Evalua
 
 def run_evaluation(ctx: OptimizationContext) -> Tuple[EvaluationResult, SeasonContext]:
     season = detect_season(ctx)
-    result = build_critical_checks(ctx, season)
-    if result is None:
+    critical_checks = build_critical_checks(ctx, season)
+    
+    if critical_checks:
+        # Combine messages and find worst score
+        combined_msg = "<br>".join([res.message for res in critical_checks])
+        min_score = min(res.efficiency_score for res in critical_checks)
+        result = EvaluationResult(
+            message=combined_msg,
+            should_act=True,
+            efficiency_score=min_score
+        )
+    else:
         result = evaluate_seasonal(ctx, season)
+    
     result.efficiency_score = clamp_score(result.efficiency_score)
     return result, season
 
