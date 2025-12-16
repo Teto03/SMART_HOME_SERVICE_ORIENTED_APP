@@ -55,6 +55,14 @@ services:
     volumes:
       - ./logs:/app/logs
 
+  anomaly-detection:
+    build: .
+    command: python3 3_business_logic_layer/anomaly_detector.py
+    ports:
+      - "5003:5003"
+    volumes:
+      - ./logs:/app/logs
+
   auth-service:
     build: .
     command: python3 3_business_logic_layer/auth_service.py
@@ -91,9 +99,11 @@ services:
     command: python3 4_process_layer/alert_process.py
     environment:
       - DATA_SERVICE_URL=http://data-service:5001
+      - ANOMALY_SERVICE_URL=http://anomaly-detection:5003
       - TELEGRAM_ADAPTER_URL=http://telegram-adapter:5005
     depends_on:
       - data-service
+      - anomaly-detection
       - telegram-adapter
     volumes:
       - ./logs:/app/logs
