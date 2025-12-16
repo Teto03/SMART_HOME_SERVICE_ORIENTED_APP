@@ -349,7 +349,9 @@
                                 } else if (device.type === 'smoke_sensor') {
                                     const isSmoke = device.status === 'SMOKE';
                                     statusColor = isSmoke ? 'text-danger fw-bold blinking' : 'text-success';
-                                    controls = isSmoke ? '<span class="badge bg-danger">CRITICAL ALERT</span>' : '<span class="badge bg-success">Status Normal</span>';
+                                    controls = isSmoke ?
+                                        `<span class="badge bg-danger mb-2">CRITICAL ALERT</span><button class="btn btn-sm btn-outline-secondary" onclick="sendCommand('${device.id}', 'SAFE')">Reset</button>` :
+                                        `<span class="badge bg-success mb-2">Status Normal</span><button class="btn btn-sm btn-outline-danger" onclick="sendCommand('${device.id}', 'TRIGGER')">Test Trigger</button>`;
                                 }
 
                                 const cardHtml = `

@@ -51,8 +51,8 @@ if __name__ == "__main__":
     def temp_behavior(t_id):
         # Normal range 18-25, but 10% chance of spike > 30 for testing alerts
         while True:
-            base_temp = random.uniform(18.0, 25.0)
-            if random.random() < 0.1: # 10% spike probability
+            base_temp = random.uniform(8.0, 25.0)
+            if random.random() < 0.2: # 10% spike probability
                 base_temp = random.uniform(30.0, 35.0)
                 
             simulate_sensor_step(t_id, base_temp)

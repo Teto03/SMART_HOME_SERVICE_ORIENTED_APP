@@ -125,23 +125,28 @@ def send_command():
         
     db = get_db()
     
+    # Also log as a reading so we can see it in history/latest
+    # Value mapping: ON/OPEN/TRIGGER=1, OFF/CLOSE=0
+    val = 1.0 if command in ["ON", "OPEN", "TRIGGER"] else 0.0
+    
+    # Special handling for TRIGGER -> Status becomes SMOKE
+    final_status = command
+    if command == "TRIGGER":
+        final_status = "SMOKE"
+    
     # Update status
     db.devices.update_one(
         {"_id": device_id},
-        {"$set": {"status": command}}
+        {"$set": {"status": final_status}}
     )
-    
-    # Also log as a reading so we can see it in history/latest
-    # Value mapping: ON/OPEN=1, OFF/CLOSE=0
-    val = 1.0 if command in ["ON", "OPEN"] else 0.0
-    
+
     db.readings.insert_one({
         "device_id": device_id,
         "value": val,
         "timestamp": time.time()
     })
         
-    return jsonify({"message": f"Command {command} sent to {device_id}", "new_status": command})
+    return jsonify({"message": f"Command {command} sent to {device_id}", "new_status": final_status})
 
 if __name__ == '__main__':
     init_db()
