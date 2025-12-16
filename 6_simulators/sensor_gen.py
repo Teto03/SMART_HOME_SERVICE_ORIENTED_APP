@@ -25,19 +25,13 @@ def simulate_sensor(device_id, device_type, min_val, max_val):
             time.sleep(2)
 
     while True:
-        value = round(random.uniform(min_val, max_val), 2)
-        payload = {
-            "device_id": device_id,
-            "value": value,
-            "timestamp": time.time()
-        }
-        
+        # Instead of generating locally, call the simulation endpoint
         try:
-            res = requests.post(f"{DATA_SERVICE_URL}/readings", json=payload)
-            if res.status_code == 201:
-                print(f"Sent {device_id}: {value}")
+            res = requests.post(f"{DATA_SERVICE_URL}/devices/simulate_reading", json={"device_id": device_id})
+            if res.status_code == 200:
+                print(f"Triggered simulation for {device_id}: {res.json().get('value')}")
             else:
-                print(f"Error sending data: {res.text}")
+                print(f"Error triggering simulation: {res.text}")
         except Exception as e:
             print(f"Connection error: {e}")
             
