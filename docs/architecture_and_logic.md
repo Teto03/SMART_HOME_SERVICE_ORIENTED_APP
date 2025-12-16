@@ -2,7 +2,7 @@
 
 ## 1. Visione e Obiettivo
 
-Il progetto **SmartHome IoT Simulator** è un sistema Service-Oriented (SOA) progettato per la gestione intelligente dell’ambiente domestico. Risolve due problemi chiave:
+Il progetto **SmartHome IoT Simulator** è un sistema **Service-Oriented (SOA)** progettato per la gestione intelligente dell’ambiente domestico. Risolve due problemi chiave:
 
 1.  **Efficienza Energetica**: Ottimizzazione dei consumi basata su temperatura interna, esterna (meteo reale) e stato dei dispositivi.
 2.  **Sicurezza Domestica**: Monitoraggio continuo per rilevare anomalie (incendio, conflitti energetici, sprechi) e notificare l’utente su Telegram.
@@ -13,128 +13,203 @@ L'applicazione simula un ecosistema IoT completo, orchestrato per fornire valore
 
 ## 2. Architettura del Sistema
 
-L'architettura segue il **Layered Architectural Pattern**, garantendo disaccoppiamento e manutenibilità. I servizi comunicano via HTTP/REST scambiando JSON.
+L'architettura segue rigorosamente il **Layered Architectural Pattern**, garantendo disaccoppiamento, manutenibilità e scalabilità. I servizi comunicano via **HTTP/REST** scambiando messaggi **JSON**.
 
-### Diagramma Logico
+### Diagramma Architetturale (Mermaid)
 
 ```mermaid
 graph TD
     subgraph "User Interface Layer"
-        UI[Web Dashboard]
+        UI[Web Dashboard (Flask)]
         TG[Telegram Client]
     end
 
     subgraph "Process Centric Layer (Orchestration)"
-        DO[Dashboard Orchestrator]
-        AP[Alert Process]
+        DO[Dashboard Orchestrator :5004]
+        AP[Alert Process :5007]
     end
 
     subgraph "Business Logic Layer (Intelligence)"
-        EO[Energy Optimization Service]
-        AD[Anomaly Detection Service]
-        AS[Auth Service]
+        EO[Energy Optimization Service :5006]
+        AD[Anomaly Detection Service :5003]
+        AS[Auth Service :5010]
     end
 
     subgraph "Adapter Services Layer (Integration)"
-        WA[Weather Adapter]
-        TA[Telegram Adapter]
+        WA[Weather Adapter :5002]
+        TA[Telegram Adapter :5005]
     end
 
     subgraph "Data Services Layer (Persistence)"
-        DS[Device Data Service]
+        DS[Device Data Service :5001]
         DB[(MongoDB)]
     end
 
-    UI --> DO
-    TG <--> TA
-    DO --> DS
-    DO --> WA
-    DO --> EO
-    DO --> AS
-    AP --> DS
-    AP --> AD
-    AP --> TA
-    EO --> WA
-    AD --> DS
-    DS --> DB
+    %% Data Flow
+    UI -- "HTTP GET /dashboard" --> DO
+    TG <-- "Webhook/Polling" --> TA
+    
+    DO -- "GET /devices" --> DS
+    DO -- "GET /weather" --> WA
+    DO -- "POST /optimize" --> EO
+    DO -- "POST /verify" --> AS
+    
+    AP -- "GET /devices" --> DS
+    AP -- "POST /analyze" --> AD
+    AP -- "POST /send_message" --> TA
+    
+    EO -- "GET /weather" --> WA
+    AD -- "GET /devices" --> DS
+    
+    DS -- "pymongo" --> DB
 ```
+
+### Tabella dei Microservizi
+
+| Servizio | Porta | Livello | Responsabilità Principale | Dipendenze |
+| :--- | :--- | :--- | :--- | :--- |
+| **Device Data Service** | `5001` | Data | CRUD sui dispositivi, Persistenza stato/storico | MongoDB |
+| **Weather Adapter** | `5002` | Adapter | Proxy verso OpenWeatherMap API | OpenWeatherMap API |
+| **Anomaly Detection** | `5003` | Business Logic | Analisi rischi e conflitti (Regole di Business) | Nessuna (Input via HTTP) |
+| **Dashboard Process** | `5004` | Process | Aggregazione dati per UI (Gateway) | Data, Weather, Auth, Energy |
+| **Telegram Adapter** | `5005` | Adapter | Interfaccia verso Telegram Bot API | Telegram API |
+| **Energy Optimizer** | `5006` | Business Logic | Algoritmi di risparmio energetico | Weather Adapter |
+| **Alert Process** | `5007` | Process | Loop asincrono di monitoraggio e allerta | Data, Anomaly, Telegram |
+| **Auth Service** | `5010` | Business Logic | Gestione Utenti, JWT Token, Login/Register | MongoDB |
+| **Web App** | `5008`* | UI | Interfaccia Utente (Frontend) | Dashboard Process |
+
+*\*La Web App è servita separatamente o integrata, qui indicata logicamente.*
 
 ---
 
 ## 3. Dettaglio dei Livelli e Logica di Business
 
 ### A. Data Services Layer (Persistenza)
-**Device Data Service** (`5001`)
-*   **Ruolo**: Unico punto di accesso al DB. Gestisce sensori e attuatori.
-*   **Interfaccia**: REST CRUD (`GET /devices`, `POST /readings`).
+**Device Data Service** (`5001`) è l'unico proprietario del database.
+- **Isolamento**: Nessun altro servizio accede al DB direttamente (eccetto Auth per gli utenti).
+- **Funzionalità**: Gestisce lo stato dei sensori (Temperature) e attuatori (Lights, Heater, AC, Windows).
 
 ### B. Adapter Services Layer (Integrazione)
-1.  **Weather Adapter Service** (`5002`)
-    *   **Ruolo**: Fornisce meteo reale (API esterna) normalizzato.
-2.  **Telegram Adapter Service** (`5005`)
-    *   **Ruolo**: Invia messaggi al Bot Telegram dell'utente.
+Isola il core del sistema dalle API esterne. Se le API esterne cambiano, si modifica solo l'adapter.
+1.  **Weather Adapter Service** (`5002`): Normalizza i dati meteo (converte Kelvin->Celsius, standardizza i campi).
+2.  **Telegram Adapter Service** (`5005`): Gestisce l'invio fisico dei messaggi.
 
 ### C. Business Logic Services Layer (Intelligenza)
-Questo livello contiene le regole di dominio pure.
+Contiene la "Logica Pura". Non si preoccupa di UI o DB, ma solo di regole.
 
 #### 1. Energy Optimization Service (`5006`)
-Calcola consigli basati sulla stagione e temperature.
-*   **Logica Stagionale**:
-    *   **Estate**: Priorità al raffrescamento naturale. Se `T_in > T_out` consiglia "Apri finestre" invece di AC.
-    *   **Inverno**: Priorità al risparmio riscaldamento. Se `T_in` alta, consiglia "Spegni caldaia".
-    *   **Mezza Stagione**: Bilanciamento ibrido.
-    *   **Auto**: Deduce la stagione dalla temperatura esterna.
+Decide la strategia migliore per il comfort e il risparmio.
+- **Input**: Temperatura Interna, Temperatura Esterna/Meteo.
+- **Logica**:
+    - **Estate**: Se $T_{in} > T_{out}$, consiglia "Free Cooling" (Apri Finestre) invece di accendere l'AC.
+    - **Inverno**: Se $T_{in}$ è alta ma il riscaldamento è acceso, consiglia di spegnere per inerzia termica.
+    - **Mezza Stagione**: Logica ibrida basata su soglie di comfort (20-24°C).
 
 #### 2. Anomaly Detection Service (`5003`)
-Analizza i dati per identificare situazioni critiche.
-*   **Regole di Business**:
-    1.  **Rischio Incendio**: Se `Temp > 50°C` -> Allarme "FIRE RISK".
-    2.  **Temperatura Alta**: Se `Temp > 28°C` (e < 50) -> Allarme "HIGH TEMP".
-    3.  **Conflict Detection**: Se `Air Conditioner == ON` AND `Heater == ON` -> Allarme "CRITICAL CONFLICT".
-    4.  **Energy Waste**: Se `Window == OPEN` AND (`Heater == ON` OR `AC == ON`) -> Allarme "ENERGY WASTE".
+Il cuore della sicurezza. Analizza snapshot dello stato casa.
+- **Regole**:
+    1.  **FIRE RISK**: Se `Temperature > 50°C`. Priorità: CRITICAL.
+    2.  **HIGH TEMP**: Se `Temperature > 28°C`. Priorità: WARNING.
+    3.  **CRITICAL CONFLICT**: Se `Heater == ON` **E** `AC == ON`. (Spreco assurdo).
+    4.  **ENERGY WASTE**: Se `Window == OPEN` **E** (`Heater == ON` **O** `AC == ON`).
+
+#### 3. Auth Service (`5010`)
+Gestisce la sicurezza degli accessi. Implementa standard **JWT (JSON Web Tokens)**.
 
 ### D. Process Centric Layer (Orchestrazione)
-Coordina i servizi sottostanti.
+Coordina i servizi per eseguire processi aziendali complessi.
 
 #### 1. Dashboard Process (`5004`)
-Aggrega dati per la UI in una singola chiamata.
-*   **Orchestrazione (4 Servizi)**:
-    1.  Chiama **Data Service** (Letture sensori).
-    2.  Chiama **Weather Adapter** (Meteo corrente).
-    3.  Chiama **Auth Service** (Verifica token).
-    4.  Chiama **Energy Optimizer** (Richiede strategia).
-*   **Output**: JSON completo per la Web App.
+Pattern **API Gateway / Aggregator**. La UI fa **una sola chiamata** a questo servizio, che ne fa 4 in parallelo (o sequenza) e impacchetta il risultato.
+- **Vantaggio**: Riduce la latenza percepita e la complessità del client.
 
-#### 2. Alert Process (`Background Loop`)
-Monitoraggio continuo e proattivo.
-*   **Orchestrazione (3 Servizi)**:
-    1.  **Data Service**: Scarica lo stato di tutti i dispositivi.
-    2.  **Anomaly Detection**: Invia i dati per l'analisi rischi.
-    3.  **Telegram Adapter**: Se rilevata anomalia (o cambio stato), invia notifica.
-
-### E. UI Layer
-*   **Web App**: Interfaccia grafica Flask per visualizzare dashboard e controllare dispositivi.
-*   **Telegram Bot**: Canale di notifica push per allarmi critici.
+#### 2. Alert Process (`5007`)
+Processo Background Asincrono.
+- Esegue un ciclo infinito (ogni 5-10 secondi).
+- **Flow**:
+    1.  Fetch stato dispositivi (`Data Service`).
+    2.  Push stato a `Anomaly Service` per analisi.
+    3.  Se `Anomaly Service` ritorna un'anomalia -> Chiama `Telegram Adapter`.
 
 ---
 
-## 4. Scenari di Business (Esempi)
+## 4. Diagrammi di Sequenza
 
-### Scenario 1: Prevenzione Incendio
-1.  Sensore rileva `55°C`.
-2.  **Alert Process** invia dato a **Anomaly Service**.
-3.  **Anomaly Service** rileva `> 50°C` e ritorna `type: FIRE`.
-4.  **Alert Process** chiama **Telegram Adapter**.
-5.  Utente riceve: "🔥 CRITICAL: High Temperature detected: 55.0 C (Fire Risk!)".
+### Flusso di Monitoraggio Anomalie (Loop)
 
-### Scenario 2: Spreco Energetico (Finestra Aperta)
-1.  Utente accende il condizionatore (`AC=ON`) ma lascia la finestra aperta (`Window=OPEN`).
-2.  **Alert Process** invia stato a **Anomaly Service**.
-3.  **Anomaly Service** incrocia gli stati: `Window=OPEN` + `AC=ON`.
-4.  Ritorna `type: WASTE`.
-5.  **Alert Process** notifica: "⚠️ ENERGY WASTE: Air Conditioner is ON while Living Room Window is OPEN!".
+```mermaid
+sequenceDiagram
+    participant AP as Alert Process
+    participant DS as Device Service
+    participant AD as Anomaly Detection
+    participant TA as Telegram Adapter
+    participant U as User (Telegram)
 
-### Scenario 3: Conflitto Dispositivi
-1.  Utente accende Riscaldamento e Aria Condizionata insieme.
-2.  **Anomaly Service** rileva `Heater=ON` AND `AC=ON`.
-3.  Notifica immediata: "CRITICAL ENERGY WASTE: Conflict detected!".
+    loop Every 10 Seconds
+        AP->>DS: GET /devices (snapshot)
+        DS-->>AP: {temp: 55, heater: ON...}
+        AP->>AD: POST /analyze {snapshot}
+        
+        alt Rischio Rilevato (es. FIRE)
+            AD-->>AP: {alert: TRUE, type: FIRE, msg: "Temp > 50C"}
+            AP->>TA: POST /send_message
+            TA->>U: "🔥 FIRE ALERT!"
+        else Nessun Rischio
+            AD-->>AP: {alert: FALSE}
+        end
+    end
+```
+
+### Flusso Caricamento Dashboard
+
+```mermaid
+sequenceDiagram
+    participant UI as Web Client
+    participant DO as Dashboard Orch.
+    participant AS as Auth Service
+    participant DS as Data Service
+    participant WA as Weather Adapter
+    participant EO as Energy Opt.
+
+    UI->>DO: GET /dashboard_data (Token)
+    DO->>AS: Verify Token
+    
+    par Parallel/Sequential Calls
+        DO->>DS: Get Devices State
+        DO->>WA: Get Outdoor Weather
+    end
+    
+    DO->>EO: Get Optimization Advice (with Weather+Device Data)
+    EO-->>DO: "Close Windows, Turn on AC"
+    
+    DO-->>UI: JSON Aggregato {devices, weather, advice}
+```
+
+---
+
+## 5. Modelli Dati (Schema Essenziale)
+
+### Device Document (MongoDB)
+```json
+{
+  "device_id": "living_room_temp",
+  "type": "sensor",
+  "value": 24.5,
+  "unit": "C",
+  "last_updated": "2023-10-27T10:00:00"
+}
+```
+
+### Anomaly Response
+```json
+{
+  "has_anomaly": true,
+  "anomalies": [
+    {
+      "type": "ENERGY_WASTE",
+      "severity": "medium",
+      "message": "Window is OPEN while AC is ON"
+    }
+  ]
+}
+```
