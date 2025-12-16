@@ -27,18 +27,6 @@ def analyze():
     
     anomalies = []
 
-    # 1. High Temperature Check
-    if temp is not None and temp > 50.0:  # Fire condition
-         anomalies.append({
-            "type": "FIRE",
-            "message": f"🔥 CRITICAL: High Temperature detected: {temp:.1f} C (Fire Risk!)"
-        })
-    elif temp is not None and temp > 28.0: # Comfort warning
-        anomalies.append({
-            "type": "HIGH_TEMP",
-            "message": f"⚠️ ALERT: High Temperature detected: {temp:.1f} C"
-        })
-
     # Prepare device mapping for logic
     device_map = {}
     for d in devices:
@@ -49,6 +37,28 @@ def analyze():
         # Let's assume the caller passes the FULL device object including "value" or "status".
         device_map[d_id] = d
 
+    # 1. Fire / Smoke Detection (Priority)
+    smoke_detected = False
+    for d_id, dev in device_map.items():
+        if dev.get("type") == "smoke_sensor" and dev.get("value") == 1:
+            smoke_detected = True
+            break
+            
+    if smoke_detected:
+        anomalies.append({
+            "type": "FIRE",
+            "message": "🔥 CRITICAL: SMOKE DETECTED! Immediate Action Required!"
+        })
+
+    # 2. High Temperature Warning (Comfort/Safety but not Fire)
+    if temp is not None and temp > 28.0:
+        anomalies.append({
+            "type": "HIGH_TEMP",
+            "message": f"⚠️ ALERT: High Temperature detected: {temp:.1f} C"
+        })
+
+    # (Device map moved to top)
+
     # Helper to check if a device is "Active" (ON, OPEN)
     def is_active(d_id):
         dev = device_map.get(d_id)
@@ -58,7 +68,7 @@ def analyze():
         # Check active conditions
         if dev.get("type") == "window":
             return (val == 1.0) or (status == "OPEN")
-        if dev.get("type") in ["heater", "ac"]:
+        if dev.get("type") in ["heater", "ac", "smart_heater", "main_heater"]: # Added aliases just in case
             return (val == 1.0) or (status == "ON")
         return False
 
@@ -97,5 +107,7 @@ def analyze():
     })
 
 if __name__ == '__main__':
-    print("Starting Anomaly Detection Service on port 5003...")
-    app.run(host='0.0.0.0', port=5003, debug=True)
+    import os
+    port = int(os.environ.get("PORT", 5003))
+    print(f"Starting Anomaly Detection Service on port {port}...")
+    app.run(host='0.0.0.0', port=port, debug=True)

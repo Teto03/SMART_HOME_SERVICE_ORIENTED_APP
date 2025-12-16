@@ -26,6 +26,16 @@
             color: red;
             font-weight: bold;
         }
+
+        .blinking {
+            animation: blinker 1s linear infinite;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 
@@ -336,6 +346,10 @@
                             <button class="btn btn-sm btn-success" onclick="sendCommand('${device.id}', 'ON')">Turn On</button>
                             <button class="btn btn-sm btn-danger" onclick="sendCommand('${device.id}', 'OFF')">Turn Off</button>
                         `;
+                                } else if (device.type === 'smoke_sensor') {
+                                    const isSmoke = device.status === 'SMOKE';
+                                    statusColor = isSmoke ? 'text-danger fw-bold blinking' : 'text-success';
+                                    controls = isSmoke ? '<span class="badge bg-danger">CRITICAL ALERT</span>' : '<span class="badge bg-success">Status Normal</span>';
                                 }
 
                                 const cardHtml = `
