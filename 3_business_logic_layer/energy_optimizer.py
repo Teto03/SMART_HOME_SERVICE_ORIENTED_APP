@@ -139,24 +139,57 @@ def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> Li
 
 
 def evaluate_summer(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
-    if ctx.indoor_temp > 26 and ctx.ac_status != "ON":
-        return EvaluationResult(
-            message="Temperature is too high! Turn on AC",
-            should_act=True,
-            efficiency_score=5
-        )
+    # 1. High Indoor Temperature Logic
+    if ctx.indoor_temp > 26:
+        if ctx.ac_status == "ON":
+             # If windows are open, build_critical_checks catches it.
+             # If windows closed, we are actively cooling.
+             return EvaluationResult(
+                message=f"Cooling in progress. Indoor: {ctx.indoor_temp}°C.",
+                should_act=False,
+                efficiency_score=7
+            )
+        
+        # AC is OFF
+        if metrics.any_open:
+            if ctx.outdoor_temp > ctx.indoor_temp:
+                 return EvaluationResult(
+                     message="It's hotter outside! Close windows to keep heat out.",
+                     should_act=True,
+                     efficiency_score=4
+                 )
+            else:
+                 # Cooler outside, windows open. Natural cooling.
+                 return EvaluationResult(
+                     message="Natural cooling active (Windows Open). Monitor temperature.",
+                     should_act=False,
+                     efficiency_score=8
+                 )
+        else:
+             # Windows Closed, AC Off.
+             return EvaluationResult(
+                 message="Temperature is too high! Turn on AC.",
+                 should_act=True,
+                 efficiency_score=5
+             )
+
+    # 2. Optimization opportunities (Free Cooling)
     if ctx.indoor_temp > ctx.outdoor_temp and not (metrics.any_open) and ctx.ac_status == "ON":
         return EvaluationResult(
             message="It's cooler outside! Open windows instead of using AC.",
             should_act=True,
             efficiency_score=6
         )
+
+    # 3. Good State (Windows open for ventilation when not too hot)
     if metrics.any_open and ctx.ac_status != "ON":
         return EvaluationResult(
             message=f"Good! Windows are open for natural ventilation in summer.",
             should_act=False,
             efficiency_score=9
         )
+
+    # 4. Default Stable
     return EvaluationResult(
         message=f"System stable. Summer mode. Indoor: {ctx.indoor_temp}°C, Outdoor: {ctx.outdoor_temp}°C.",
         should_act=False,
