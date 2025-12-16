@@ -68,6 +68,14 @@ def settings_proxy():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/api/force_refresh', methods=['POST'])
+def force_refresh_proxy():
+    try:
+        res = requests.post(f"{PROCESS_BASE_URL}/api/force_refresh", json=request.json or {})
+        return jsonify(res.json()), res.status_code
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     print("Starting Web App on port 5008...")
     app.run(host='0.0.0.0', port=5008, debug=True)

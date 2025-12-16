@@ -203,6 +203,15 @@ def send_command():
     except:
         return jsonify({"error": "Data Service unreachable"}), 500
 
+@app.route('/api/force_refresh', methods=['POST'])
+def force_refresh():
+    try:
+        # For now, just force refresh the main temp sensor
+        res = requests.post(f"{DATA_SERVICE_URL}/devices/simulate_reading", json={"device_id": "temp_sensor_01"})
+        return jsonify(res.json()), res.status_code
+    except:
+        return jsonify({"error": "Data Service unreachable"}), 500
+
 if __name__ == '__main__':
     print("Starting Dashboard Process on port 5004...")
     app.run(host='0.0.0.0', port=5004, debug=True)

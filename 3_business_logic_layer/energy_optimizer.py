@@ -218,18 +218,60 @@ def evaluate_winter(ctx: OptimizationContext, metrics: WindowMetrics) -> Evaluat
 
 
 def evaluate_mild(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
+    # 1. Ideal Temperature Range Check (20-22°C)
+    # If temp is perfect, ensure we aren't wasting energy.
+    if 20.0 <= ctx.indoor_temp <= 22.0:
+        if ctx.boiler_status == "ON" or ctx.ac_status == "ON":
+            return EvaluationResult(
+                message="Temperature is ideal (20-22°C). Turn off heating/cooling to save energy.",
+                should_act=True,
+                efficiency_score=6
+            )
+        else:
+             return EvaluationResult(
+                message="Temperature is ideal (20-22°C). Systems off. Good job!",
+                should_act=False,
+                efficiency_score=10
+            )
+
+    # 2. Cooling Opportunity (Too hot inside > 24, Cooler outside)
+    if ctx.indoor_temp > 24 and ctx.outdoor_temp < ctx.indoor_temp - 2:
+        if not metrics.any_open:
+            return EvaluationResult(
+                message="It's cooler outside! Open windows to cool down naturally.",
+                should_act=True,
+                efficiency_score=6
+            )
+        if ctx.ac_status == "ON":
+             return EvaluationResult(
+                message="Natural cooling active. Turn off AC to save energy.",
+                should_act=True,
+                efficiency_score=5
+             )
+
+    # 3. Warming Opportunity (Too cold inside < 20, Warmer outside but not hot)
+    if ctx.indoor_temp < 20 and ctx.outdoor_temp > ctx.indoor_temp + 2 and ctx.outdoor_temp < 25:
+        if not metrics.any_open:
+            return EvaluationResult(
+                message="It's warmer outside! Open windows to warm up naturally.",
+                should_act=True,
+                efficiency_score=6
+            )
+        if ctx.boiler_status == "ON":
+             return EvaluationResult(
+                message="Natural heating active. Turn off Boiler to save energy.",
+                should_act=True,
+                efficiency_score=5
+             )
+
+    # Fallback to existing logic for other cases or preserve stability
     if ctx.indoor_temp > ctx.outdoor_temp + 3 and not (metrics.any_open) and ctx.ac_status == "ON":
         return EvaluationResult(
             message=f"It's cool outside! Open windows instead of using AC",
             should_act=True,
             efficiency_score=6
         )
-    if ctx.outdoor_temp > ctx.indoor_temp + 3 and not metrics.any_open and ctx.indoor_temp < 20:
-        return EvaluationResult(
-            message=f"It's warmer outside! Open windows instead of using boiler",
-            should_act=True,
-            efficiency_score=6
-        )
+    
     return EvaluationResult(
         message=f"System stable. Mild weather. Indoor: {ctx.indoor_temp}°C, Outdoor: {ctx.outdoor_temp}°C.",
         should_act=False,

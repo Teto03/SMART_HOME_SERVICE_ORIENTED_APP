@@ -553,6 +553,12 @@
                             btnElement.disabled = true;
                             btnElement.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Refreshing...';
 
+                            try {
+                                await fetch('/api/force_refresh', { method: 'POST' });
+                            } catch (e) {
+                                console.error("Force refresh failed", e);
+                            }
+
                             await Promise.all([fetchData(), fetchDevices()]);
 
                             btnElement.disabled = false;
@@ -579,10 +585,10 @@
                     // Initial Load
                     document.addEventListener('DOMContentLoaded', () => {
                         checkAuth();
-                        // Auto refresh every 5 seconds
+                        // Auto refresh every 60 seconds
                         setInterval(() => {
                             if (authToken) refreshAll();
-                        }, 5000);
+                        }, 60000);
                     });
                 </script>
 

@@ -52,11 +52,11 @@ if __name__ == "__main__":
         # Normal range 18-25, but 10% chance of spike > 30 for testing alerts
         while True:
             base_temp = random.uniform(8.0, 25.0)
-            if random.random() < 0.2: # 10% spike probability
+            if random.random() < 0.15: # 15% spike probability
                 base_temp = random.uniform(30.0, 35.0)
                 
             simulate_sensor_step(t_id, base_temp)
-            time.sleep(60)
+            time.sleep(5)
 
     t1 = threading.Thread(target=simulate_sensor, args=("temp_sensor_01", "temperature", 18.0, 25.0))
     # We will override the target for t1 to use a smarter function allowing spikes, 

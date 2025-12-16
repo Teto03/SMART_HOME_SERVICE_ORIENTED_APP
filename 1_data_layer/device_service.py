@@ -148,6 +148,27 @@ def send_command():
         
     return jsonify({"message": f"Command {command} sent to {device_id}", "new_status": final_status})
 
+@app.route('/devices/simulate_reading', methods=['POST'])
+def simulate_reading():
+    data = request.json
+    device_id = data.get('device_id')
+    
+    if not device_id:
+        return jsonify({"error": "Missing device_id"}), 400
+        
+    # Simple simulation logic for temperature
+    import random
+    value = round(random.uniform(18.0, 25.0), 2)
+    
+    db = get_db()
+    db.readings.insert_one({
+        "device_id": device_id,
+        "value": value,
+        "timestamp": time.time()
+    })
+    
+    return jsonify({"message": "Reading simulated", "value": value})
+
 if __name__ == '__main__':
     init_db()
     print("Starting Data Service on port 5001...")
