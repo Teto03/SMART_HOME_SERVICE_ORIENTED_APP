@@ -169,6 +169,45 @@ def simulate_reading():
     
     return jsonify({"message": "Reading simulated", "value": value})
 
+@app.route('/settings', methods=['GET'])
+def get_settings():
+    db = get_db()
+    # Use a fixed ID for global settings, e.g., "global_config"
+    settings = db.settings.find_one({"_id": "global_config"})
+    if not settings:
+        # Default settings
+        return jsonify({
+            "city": "Milan",
+            "season_mode": "auto"
+        })
+    
+    return jsonify({
+        "city": settings.get("city", "Milan"),
+        "season_mode": settings.get("season_mode", "auto")
+    })
+
+@app.route('/settings', methods=['POST'])
+def update_settings():
+    data = request.json
+    db = get_db()
+    
+    update_fields = {}
+    if 'city' in data:
+        update_fields['city'] = data['city']
+    if 'season_mode' in data:
+        update_fields['season_mode'] = data['season_mode']
+        
+    if not update_fields:
+        return jsonify({"message": "No settings to update"}), 200
+        
+    db.settings.update_one(
+        {"_id": "global_config"},
+        {"$set": update_fields},
+        upsert=True
+    )
+    
+    return jsonify({"message": "Settings updated", "updated": update_fields})
+
 if __name__ == '__main__':
     init_db()
     print("Starting Data Service on port 5001...")

@@ -87,7 +87,7 @@
                                 <option value="Tokyo">
                             </datalist>
                             <button class="btn btn-outline-secondary" type="button"
-                                onclick="refreshAll(this)">Update</button>
+                                onclick="updateCitySettings()">Update</button>
                         </div>
                     </div>
                 </div>
@@ -314,6 +314,27 @@
                         }
                     }
 
+                    // Update settings when City changes
+                    async function updateCitySettings() {
+                        const cityInput = document.getElementById('city-input');
+                        const city = cityInput.value;
+                        if (!city) return;
+                        
+                        try {
+                            await fetch('/settings', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Bearer ' + authToken
+                                },
+                                body: JSON.stringify({ city: city })
+                            });
+                            refreshAll(); // Refresh everything
+                        } catch (error) {
+                            console.error('Error updating city:', error);
+                        }
+                    }
+
                     async function fetchDevices() {
                         try {
                             const response = await fetch('/api/devices');
@@ -410,15 +431,19 @@
                             let cityInput = document.getElementById('city-input');
                             let city = cityInput.value;
 
-                            if (!city) {
-                                city = localStorage.getItem('selected_city') || 'Milan';
-                                cityInput.value = city;
-                            } else {
-                                localStorage.setItem('selected_city', city);
+                            // If city input is empty, don't force it, let backend decide or fill it later
+                            let query = "";
+                            if (city) {
+                                query = `?city=${city}`;
                             }
 
-                            const response = await fetch(`/api/data?city=${city}`);
+                            const response = await fetch(`/api/data${query}`);
                             const data = await response.json();
+                            
+                            // Sync UI with Backend Settings
+                            if (data.city && document.getElementById('city-input').value !== data.city) {
+                                document.getElementById('city-input').value = data.city;
+                            }
 
                             // Update Season Mode Selector
                             if (data.season_mode) {

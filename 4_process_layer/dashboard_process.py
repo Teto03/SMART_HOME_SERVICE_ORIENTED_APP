@@ -12,7 +12,11 @@ BUSINESS_SERVICE_URL = os.environ.get("BUSINESS_SERVICE_URL", "http://localhost:
 AUTH_SERVICE_URL = os.environ.get("AUTH_SERVICE_URL", "http://localhost:5010")
 
 # Global settings
-current_season_mode = "auto"
+# Global settings (cached, but fetched from DB)
+current_settings = {
+    "city": "Milan",
+    "season_mode": "auto"
+}
 
 def require_auth(f):
     from functools import wraps
@@ -57,20 +61,47 @@ def register_proxy():
 @app.route('/settings', methods=['POST'])
 @require_auth
 def update_settings():
-    global current_season_mode
+    global current_settings
     data = request.json
-    if 'season_mode' in data:
-        current_season_mode = data['season_mode']
-    return jsonify({"status": "updated", "season_mode": current_season_mode})
+    
+    # Proxy to Data Service to save
+    try:
+        requests.post(f"{DATA_SERVICE_URL}/settings", json=data)
+        # Update local cache
+        if "city" in data:
+            current_settings["city"] = data["city"]
+        if "season_mode" in data:
+            current_settings["season_mode"] = data["season_mode"]
+    except Exception as e:
+        print(f"Error saving settings: {e}")
+        return jsonify({"error": "Failed to save settings"}), 500
+        
+    return jsonify({"status": "updated", "settings": current_settings})
 
 @app.route('/api/home_status', methods=['GET'])
+@app.route('/api/home_status', methods=['GET'])
 def get_home_status():
-    city = request.args.get('city', 'Milan')
+    global current_settings
+    
+    # Fetch latest settings from DB to be sure (or rely on cache if performance needed)
+    try:
+        res_settings = requests.get(f"{DATA_SERVICE_URL}/settings")
+        if res_settings.status_code == 200:
+            current_settings = res_settings.json()
+    except:
+        pass
+        
+    # Use city from query or fallback to settings
+    city = request.args.get('city')
+    if not city:
+        city = current_settings.get("city", "Milan")
+        
     response_data = {
         "system_status": "online",
         "data": {},
         "alerts": [],
-        "advice": ""
+        "advice": "",
+        "season_mode": current_settings.get("season_mode", "auto")
     }
     
     # 1. Get Indoor Temp
@@ -165,7 +196,7 @@ def get_home_status():
                 "window_states": window_states,
                 "boiler_status": boiler_status,
                 "ac_status": ac_status,
-                "season_mode": current_season_mode # Pass season_mode to the optimizer
+                "season_mode": current_settings.get("season_mode", "auto") # Pass season_mode to the optimizer
             }
             res = requests.post(f"{BUSINESS_SERVICE_URL}/optimize_energy", json=payload)
             if res.status_code == 200:
@@ -179,7 +210,8 @@ def get_home_status():
         except:
             response_data["alerts"].append("Business Service unreachable")
             
-    response_data["season_mode"] = data.get("season_mode")
+    response_data["season_mode"] = current_settings.get("season_mode", "auto")
+    response_data["city"] = city # Return the city used
     return jsonify(response_data)
 
 @app.route('/api/devices', methods=['GET'])
