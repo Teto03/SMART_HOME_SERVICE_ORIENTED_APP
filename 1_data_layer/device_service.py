@@ -34,9 +34,15 @@ def register_device():
         
     db = get_db()
     try:
+        # Use $setOnInsert for status so we don't overwrite existing state (e.g. OPEN window)
+        # But update type if it changes (less critical, but good practice)
+        update_op = {
+            "$set": {"type": device_type},
+            "$setOnInsert": {"status": status}
+        }
         db.devices.update_one(
             {"_id": device_id},
-            {"$set": {"type": device_type, "status": status}},
+            update_op,
             upsert=True
         )
         return jsonify({"message": "Device registered", "device_id": device_id}), 201
