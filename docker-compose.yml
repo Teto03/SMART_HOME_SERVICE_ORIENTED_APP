@@ -13,8 +13,9 @@ services:
     ports:
       - "5001:5001"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/
+      - DB_ADAPTER_URL=http://database-adapter:5009
     depends_on:
+      - database-adapter
       - mongo
     volumes:
       - ./logs:/app/logs
@@ -46,6 +47,18 @@ services:
     volumes:
       - ./logs:/app/logs
 
+  database-adapter:
+    build: .
+    command: python3 2_adapter_layer/database_adapter.py
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/
+    ports:
+      - "5009:5009"
+    depends_on:
+      - mongo
+    volumes:
+      - ./logs:/app/logs
+
   # --- Business Logic Layer ---
   energy-optimizer:
     build: .
@@ -69,8 +82,10 @@ services:
     ports:
       - "5010:5010"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/
+        - DB_ADAPTER_URL=http://database-adapter:5009
+        - SECRET_KEY=${SECRET_KEY}
     depends_on:
+      - database-adapter
       - mongo
     volumes:
       - ./logs:/app/logs

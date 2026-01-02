@@ -1,26 +1,49 @@
 from flask import Flask, request, jsonify
 import time
 import os
-from pymongo import MongoClient
-from bson.json_util import dumps
+import requests
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 
-MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-DB_NAME = 'devices_db'
 
-def get_db():
-    client = MongoClient(MONGO_URI)
-    return client[DB_NAME]
+DB_ADAPTER_URL = os.getenv('DB_ADAPTER_URL', 'http://localhost:5009')
+
+def call_db_adapter(method, endpoint, data=None, params=None):
+    """Helper function to call database adapter"""
+    url = f"{DB_ADAPTER_URL}{endpoint}"
+    try:
+        if method == 'GET':
+            response = requests.get(url, params=params, timeout=5)
+        elif method == 'POST':
+            response = requests.post(url, json=data, timeout=5)
+        elif method == 'PUT':
+            response = requests.put(url, json=data, timeout=5)
+        else:
+            return None, {"error": f"Unsupported method: {method}"}, 500
+        
+        if response.status_code >= 400:
+            return None, response.json() if response.content else {"error": "Database adapter error"}, response.status_code
+        return response.json(), None, response.status_code
+    except requests.exceptions.RequestException as e:
+        return None, {"error": f"Database adapter unavailable: {str(e)}"}, 503
+
 
 def init_db():
-    # MongoDB creates collections lazily, but we can ensure indexes here if needed
-    db = get_db()
-    # Ensure device_id is unique in devices collection if we were enforcing it strictly,
-    # but `INSERT OR REPLACE` logic suggests we just upsert.
-    # We can create an index on timestamp for readings for faster latest reading queries.
-    db.readings.create_index([("device_id", 1), ("timestamp", -1)])
-    print("Connected to MongoDB.")
+    """Initialize database (indexes are handled by database adapter)"""
+    # Verify database adapter is available by trying to get settings
+    try:
+        result, error, status_code = call_db_adapter('GET', '/settings')
+        if error:
+            print(f"Warning: Database adapter may not be ready. Error: {error.get('error', 'Unknown error')}")
+        else:
+            print("Database adapter is available and initialized.")
+    except Exception as e:
+        print(f"Warning: Cannot verify database adapter connection: {str(e)}")
+        print("Make sure database adapter is running on port 5009.")
+
 
 @app.route('/devices', methods=['POST'])
 def register_device():
@@ -31,30 +54,24 @@ def register_device():
     
     if not device_id or not device_type:
         return jsonify({"error": "Missing device_id or type"}), 400
-        
-    db = get_db()
-    try:
-        # Use $setOnInsert for status so we don't overwrite existing state (e.g. OPEN window)
-        # But update type if it changes (less critical, but good practice)
-        update_op = {
-            "$set": {"type": device_type},
-            "$setOnInsert": {"status": status}
-        }
-        db.devices.update_one(
-            {"_id": device_id},
-            update_op,
-            upsert=True
-        )
-        return jsonify({"message": "Device registered", "device_id": device_id}), 201
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    
+    result, error, status_code = call_db_adapter('POST', '/devices', {
+        'device_id': device_id,
+        'type': device_type,
+        'status': status
+    })
+    
+    if error:
+        return jsonify(error), status_code
+    return jsonify(result), status_code
 
 @app.route('/devices', methods=['GET'])
 def get_devices():
-    db = get_db()
-    devices_cursor = db.devices.find()
-    devices = [{"id": d["_id"], "type": d.get("type"), "status": d.get("status")} for d in devices_cursor]
-    return jsonify(devices)
+    result, error, status_code = call_db_adapter('GET', '/devices')
+    
+    if error:
+        return jsonify(error), status_code
+    return jsonify(result), status_code
 
 @app.route('/readings', methods=['POST'])
 def add_reading():
@@ -65,73 +82,38 @@ def add_reading():
     
     if not device_id or value is None:
         return jsonify({"error": "Missing device_id or value"}), 400
-        
-    db = get_db()
     
-    # Auto-register device if not exists (simulating INSERT OR IGNORE)
-    # in mongo updates with upsert=True is easiest, but we only want to set if NEW.
-    # $setOnInsert is perfect for this.
-    db.devices.update_one(
-        {"_id": device_id},
-        {"$setOnInsert": {"type": "unknown", "status": "active"}},
-        upsert=True
-    )
-    
-    db.readings.insert_one({
-        "device_id": device_id,
-        "value": value,
-        "timestamp": timestamp
+    result, error, status_code = call_db_adapter('POST', '/readings', {
+        'device_id': device_id,
+        'value': value,
+        'timestamp': timestamp
     })
     
-    return jsonify({"message": "Reading added"}), 201
+    if error:
+        return jsonify(error), status_code
+    return jsonify(result), status_code
 
 @app.route('/readings/latest', methods=['GET'])
 def get_latest_reading():
     device_id = request.args.get('device_id')
     if not device_id:
         return jsonify({"error": "Missing device_id parameter"}), 400
-        
-    db = get_db()
-    # Get latest reading
-    reading = db.readings.find_one(
-        {"device_id": device_id},
-        sort=[("timestamp", -1)]
-    )
     
-    # Get device status
-    device = db.devices.find_one({"_id": device_id})
-    device_status = device.get("status") if device else "unknown"
+    result, error, status_code = call_db_adapter('GET', '/readings/latest', params={'device_id': device_id})
     
-    if reading:
-        return jsonify({
-            "device_id": reading["device_id"],
-            "value": reading["value"],
-            "timestamp": reading["timestamp"],
-            "status": device_status
-        })
-    else:
-        # Fallback if no readings but device exists
-        if device:
-             return jsonify({
-                "device_id": device["_id"],
-                "value": 0.0, # Default value
-                "timestamp": time.time(),
-                "status": device_status
-            })
-        return jsonify({"error": "No readings found"}), 404
+    if error:
+        return jsonify(error), status_code
+    return jsonify(result), status_code
 
 @app.route('/devices/command', methods=['POST'])
 def send_command():
     data = request.json
     device_id = data.get('device_id')
-    command = data.get('command') # e.g., "ON", "OFF", "OPEN", "CLOSE"
+    command = data.get('command')  # e.g., "ON", "OFF", "OPEN", "CLOSE"
     
     if not device_id or not command:
         return jsonify({"error": "Missing device_id or command"}), 400
-        
-    db = get_db()
     
-    # Also log as a reading so we can see it in history/latest
     # Value mapping: ON/OPEN/TRIGGER=1, OFF/CLOSE=0
     val = 1.0 if command in ["ON", "OPEN", "TRIGGER"] else 0.0
     
@@ -140,19 +122,33 @@ def send_command():
     if command == "TRIGGER":
         final_status = "SMOKE"
     
-    # Update status
-    db.devices.update_one(
-        {"_id": device_id},
-        {"$set": {"status": final_status}}
-    )
-
-    db.readings.insert_one({
-        "device_id": device_id,
-        "value": val,
-        "timestamp": time.time()
+    # Update device status
+    update_result, update_error, update_status = call_db_adapter('PUT', f'/devices/{device_id}', {
+        'status': final_status
     })
-        
-    return jsonify({"message": f"Command {command} sent to {device_id}", "new_status": final_status})
+    
+    if update_error:
+        return jsonify(update_error), update_status
+    
+    # Log as a reading
+    reading_result, reading_error, reading_status = call_db_adapter('POST', '/readings', {
+        'device_id': device_id,
+        'value': val,
+        'timestamp': time.time()
+    })
+    
+    if reading_error:
+        # Status was updated but reading failed - still return success for command
+        return jsonify({
+            "message": f"Command {command} sent to {device_id}",
+            "new_status": final_status,
+            "warning": "Reading log failed"
+        })
+    
+    return jsonify({
+        "message": f"Command {command} sent to {device_id}",
+        "new_status": final_status
+    })
 
 @app.route('/devices/simulate_reading', methods=['POST'])
 def simulate_reading():
@@ -161,58 +157,37 @@ def simulate_reading():
     
     if not device_id:
         return jsonify({"error": "Missing device_id"}), 400
-        
+    
     # Simple simulation logic for temperature
     import random
     value = round(random.uniform(18.0, 25.0), 2)
     
-    db = get_db()
-    db.readings.insert_one({
-        "device_id": device_id,
-        "value": value,
-        "timestamp": time.time()
+    result, error, status_code = call_db_adapter('POST', '/readings', {
+        'device_id': device_id,
+        'value': value,
+        'timestamp': time.time()
     })
     
+    if error:
+        return jsonify(error), status_code
     return jsonify({"message": "Reading simulated", "value": value})
 
 @app.route('/settings', methods=['GET'])
 def get_settings():
-    db = get_db()
-    # Use a fixed ID for global settings, e.g., "global_config"
-    settings = db.settings.find_one({"_id": "global_config"})
-    if not settings:
-        # Default settings
-        return jsonify({
-            "city": "Milan",
-            "season_mode": "auto"
-        })
+    result, error, status_code = call_db_adapter('GET', '/settings')
     
-    return jsonify({
-        "city": settings.get("city", "Milan"),
-        "season_mode": settings.get("season_mode", "auto")
-    })
+    if error:
+        return jsonify(error), status_code
+    return jsonify(result), status_code
 
 @app.route('/settings', methods=['POST'])
 def update_settings():
     data = request.json
-    db = get_db()
+    result, error, status_code = call_db_adapter('POST', '/settings', data)
     
-    update_fields = {}
-    if 'city' in data:
-        update_fields['city'] = data['city']
-    if 'season_mode' in data:
-        update_fields['season_mode'] = data['season_mode']
-        
-    if not update_fields:
-        return jsonify({"message": "No settings to update"}), 200
-        
-    db.settings.update_one(
-        {"_id": "global_config"},
-        {"$set": update_fields},
-        upsert=True
-    )
-    
-    return jsonify({"message": "Settings updated", "updated": update_fields})
+    if error:
+        return jsonify(error), status_code
+    return jsonify(result), status_code
 
 if __name__ == '__main__':
     init_db()

@@ -3,3 +3,4 @@ requests
 PyJWT
 python-dotenv
 pymongo
+requests

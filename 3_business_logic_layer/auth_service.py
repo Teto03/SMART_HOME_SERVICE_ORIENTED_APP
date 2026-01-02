@@ -3,32 +3,51 @@ import jwt
 import datetime
 import hashlib
 import os
-from pymongo import MongoClient
+import requests
 from dotenv import load_dotenv
+import time
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'default_insecure_secret_key')
-MONGO_URI = os.getenv('MONGO_URI', 'mongodb://localhost:27017/')
-DB_NAME = 'users_db'
 
-def get_db():
-    client = MongoClient(MONGO_URI)
-    return client[DB_NAME]
+DB_ADAPTER_URL = os.getenv('DB_ADAPTER_URL', 'http://localhost:5009')
+
+def call_db_adapter(method, endpoint, data=None, params=None):
+    """Helper function to call database adapter"""
+    url = f"{DB_ADAPTER_URL}{endpoint}"
+    try:
+        if method == 'GET':
+            response = requests.get(url, params=params, timeout=5)
+        elif method == 'POST':
+            response = requests.post(url, json=data, timeout=5)
+        elif method == 'PUT':
+            response = requests.put(url, json=data, timeout=5)
+        else:
+            return None, {"error": f"Unsupported method: {method}"}, 500
+        
+        if response.status_code >= 400:
+            return None, response.json() if response.content else {"error": "Database adapter error"}, response.status_code
+        return response.json(), None, response.status_code
+    except requests.exceptions.RequestException as e:
+        return None, {"error": f"Database adapter unavailable: {str(e)}"}, 503
+
 
 def init_db():
-    db = get_db()
-    # Create unique index on username
-    db.users.create_index("username", unique=True)
-    
+    """Initialize database (indexes are handled by database adapter)"""
     # Create default admin if not exists
-    if not db.users.find_one({"username": "admin"}):
-        admin_pw_hash = hashlib.sha256("admin123".encode()).hexdigest()
-        db.users.insert_one({"username": "admin", "password_hash": admin_pw_hash})
-        print("Created default admin user.")
-    print("Connected to MongoDB for Auth.")
+    user_result, user_error, _ = call_db_adapter('GET', '/users/admin')
+    
+    if user_error and 'not found' in user_error.get('error', '').lower():
+        admin_result, admin_error, _ = call_db_adapter('POST', '/users', {
+            'username': 'admin',
+            'password': 'admin123'
+        })
+        if not admin_error:
+            print("Created default admin user.")
+    print("Auth service initialized.")
 
 @app.route('/register', methods=['POST'])
 def register():
@@ -41,18 +60,17 @@ def register():
     
     if len(password) < 8:
         return jsonify({"error": "Password must be at least 8 characters long"}), 400
-        
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
     
-    db = get_db()
-    try:
-        db.users.insert_one({"username": username, "password_hash": hashed_pw})
-        return jsonify({"message": "User registered successfully"}), 201
-    except Exception as e:
-        # duplicate key error code is 11000
-        if "11000" in str(e):
-            return jsonify({"error": "Username already exists"}), 409
-        return jsonify({"error": str(e)}), 500
+    # Call database adapter to create user
+    result, error, status_code = call_db_adapter('POST', '/users', {
+        'username': username,
+        'password': password
+    })
+    
+    if error:
+        return jsonify(error), status_code
+    
+    return jsonify({"message": "User registered successfully"}), 201
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -63,22 +81,22 @@ def login():
     username = data['username']
     password = data['password']
     
-    # Hash the password to compare
-    hashed_pw = hashlib.sha256(password.encode()).hexdigest()
+    # Verify password using database adapter
+    result, error, status_code = call_db_adapter('POST', '/users/verify_password', {
+        'username': username,
+        'password': password
+    })
     
-    db = get_db()
-    user = db.users.find_one({"username": username})
+    if error or not result.get('valid'):
+        return jsonify({"error": "Invalid credentials"}), 401
     
-    if user and user.get("password_hash") == hashed_pw:
-        # Generate Token
-        token = jwt.encode({
-            'user': username,
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
-        }, app.config['SECRET_KEY'], algorithm="HS256")
-        
-        return jsonify({"token": token})
+    # Generate Token
+    token = jwt.encode({
+        'user': username,
+        'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)
+    }, app.config['SECRET_KEY'], algorithm="HS256")
     
-    return jsonify({"error": "Invalid credentials"}), 401
+    return jsonify({"token": token})
 
 @app.route('/verify', methods=['POST'])
 def verify():
