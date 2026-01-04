@@ -16,7 +16,6 @@ services:
       - DB_ADAPTER_URL=http://database-adapter:5009
     depends_on:
       - database-adapter
-      - mongo
     volumes:
       - ./logs:/app/logs
 
@@ -116,7 +115,6 @@ services:
       - DATA_SERVICE_URL=http://data-service:5001
       - ANOMALY_SERVICE_URL=http://anomaly-detection:5003
       - TELEGRAM_ADAPTER_URL=http://telegram-adapter:5005
-      - DASHBOARD_PROCESS_URL=http://dashboard-process:5004
     depends_on:
       - data-service
       - anomaly-detection

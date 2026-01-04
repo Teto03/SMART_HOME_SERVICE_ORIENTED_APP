@@ -8,7 +8,6 @@ import threading
 DATA_SERVICE_URL = os.environ.get("DATA_SERVICE_URL", "http://localhost:5001")
 ANOMALY_SERVICE_URL = os.environ.get("ANOMALY_SERVICE_URL", "http://localhost:5003")
 TELEGRAM_ADAPTER_URL = os.environ.get("TELEGRAM_ADAPTER_URL", "http://localhost:5005")
-DASHBOARD_PROCESS_URL = os.environ.get("DASHBOARD_PROCESS_URL", "http://localhost:5004")
 
 # State tracking to avoid spam
 last_alert_state = {
@@ -167,55 +166,6 @@ def monitor_loop():
                 requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={"message": "✅ Energy waste condition resolved."})
                 requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={"message": "✅ Energy waste condition resolved."})
                 last_alert_state["waste"] = False
-
-            # --- Energy Optimization Alerts (New Task) ---
-            try:
-                # Fetch global settings to know which city
-                global_city = "Milan"
-                try:
-                    res_settings = requests.get(f"{DATA_SERVICE_URL}/settings")
-                    if res_settings.status_code == 200:
-                        global_city = res_settings.json().get("city", "Milan")
-                except:
-                    pass
-                
-                # Fetch Home Status (Advice) using the global city
-                res_status = requests.get(f"{DASHBOARD_PROCESS_URL}/api/home_status?city={global_city}")
-                if res_status.status_code == 200:
-                    status_data = res_status.json()
-                    
-                    action_required = status_data.get("action_required", False)
-                    advice = status_data.get("advice", "")
-                    score = status_data.get("efficiency_score", 0)
-                    open_windows = status_data.get("windows_open_count", 0)
-                    
-                    # Create a unique signature for this alert state
-                    current_advice_sig = f"{action_required}-{advice}-{score}-{open_windows}"
-                    
-                    if action_required:
-                        # Only send if it's a new alert state (avoid spamming every loop)
-                        if last_alert_state.get("energy_advice") != current_advice_sig:
-                            print(f"Sending Energy Alert: {advice}")
-                            
-                            msg = (
-                                f"⚠️ Energy Alert!\n\n"
-                                f"{advice}\n\n"
-                                f"Efficiency Score: {score}/10 📉\n"
-                                f"Open Windows: {open_windows} 🪟\n\n"
-                                f"Action Required! Please follow the advice above to improve efficiency. 💡"
-                            )
-                            
-                            requests.post(f"{TELEGRAM_ADAPTER_URL}/send_message", json={"message": msg})
-                            last_alert_state["energy_advice"] = current_advice_sig
-                    else:
-                        # Clear state if action no longer required
-                        if last_alert_state.get("energy_advice"):
-                             # Optional: Send "All good" message? User didn't ask, but good for clearing state.
-                             # For now, just reset tracking so next alert sends.
-                             last_alert_state["energy_advice"] = None
-                             
-            except Exception as e:
-                print(f"Error checking energy advice: {e}")
 
         except Exception as e:
             print(f"Error in monitor loop: {e}")
