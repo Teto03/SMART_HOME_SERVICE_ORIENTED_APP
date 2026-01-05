@@ -47,14 +47,14 @@ def analyze():
     if smoke_detected:
         anomalies.append({
             "type": "FIRE",
-            "message": "🔥 CRITICAL: SMOKE DETECTED! Immediate Action Required!"
+            "message": "CRITICAL: SMOKE DETECTED! Immediate Action Required!"
         })
 
     # 2. High Temperature Warning (Comfort/Safety but not Fire)
     if temp is not None and temp > 28.0:
         anomalies.append({
             "type": "HIGH_TEMP",
-            "message": f"⚠️ ALERT: High Temperature detected: {temp:.1f} C"
+            "message": f"ALERT: High Temperature detected: {temp:.1f} C"
         })
 
     # (Device map moved to top)
@@ -98,7 +98,7 @@ def analyze():
         win_str = ", ".join(open_windows)
         anomalies.append({
             "type": "WASTE",
-            "message": f"⚠️ ENERGY WASTE: {hvac_str} is ON while {win_str} is OPEN!"
+            "message": f"ENERGY WASTE: {hvac_str} is ON while {win_str} is OPEN!"
         })
 
     return jsonify({
