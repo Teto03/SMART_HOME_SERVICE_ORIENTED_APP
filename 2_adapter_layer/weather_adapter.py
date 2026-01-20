@@ -22,6 +22,7 @@ DAILY_LIMIT = 800
 
 @app.route('/current_weather', methods=['GET'])
 def get_current_weather():
+    """Get the current weather for a city and store it in the cache"""
     global daily_calls, last_reset
     
     # Reset counter if 24h passed
@@ -31,7 +32,6 @@ def get_current_weather():
 
     city = request.args.get('city', 'Milan')
     
-    # 1. Check Cache (Valid TTL)
     if city in weather_cache:
         timestamp, data = weather_cache[city]
         if time.time() - timestamp < CACHE_TTL:
@@ -48,7 +48,6 @@ def get_current_weather():
             "mock": True
         })
 
-    # 2. Check Rate Limit
     if daily_calls >= DAILY_LIMIT:
         print("Rate limit reached!")
         # Try to return stale cache if available
@@ -66,7 +65,6 @@ def get_current_weather():
             "units": "metric"
         }
         
-        # 3. Call API
         daily_calls += 1
         print(f"Calling OWM API for {city}. Daily calls: {daily_calls}/{DAILY_LIMIT}")
         

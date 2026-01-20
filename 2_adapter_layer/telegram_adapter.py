@@ -14,6 +14,7 @@ TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 
 @app.route('/send_message', methods=['POST'])
 def send_message():
+    """Send a message to a Telegram chat"""
     data = request.json
     message = data.get('message')
     

@@ -6,20 +6,6 @@ app = Flask(__name__)
 def analyze():
     """
     Analyzes sensor data and device states to detect anomalies.
-    Input JSON:
-    {
-        "temp": float, (optional)
-        "devices": [ ... ] (device objects from Data Service)
-    }
-    Output JSON:
-    {
-        "has_anomaly": bool,
-        "anomalies": [
-             {"type": "HIGH_TEMP", "message": "..."},
-             {"type": "CONFLICT", "message": "..."},
-             {"type": "WASTE", "message": "..."}
-        ]
-    }
     """
     data = request.json or {}
     temp = data.get("temp")
@@ -27,17 +13,11 @@ def analyze():
     
     anomalies = []
 
-    # Prepare device mapping for logic
     device_map = {}
     for d in devices:
         d_id = d.get("id")
-        # Devices list from Data Service usually contains metadata. 
-        # We need current input/state which might be passed differently 
-        # OR we assume the caller passed the full device state.
-        # Let's assume the caller passes the FULL device object including "value" or "status".
         device_map[d_id] = d
 
-    # 1. Fire / Smoke Detection (Priority)
     smoke_detected = False
     for d_id, dev in device_map.items():
         if dev.get("type") == "smoke_sensor" and dev.get("value") == 1:
@@ -50,16 +30,12 @@ def analyze():
             "message": "CRITICAL: SMOKE DETECTED! Immediate Action Required!"
         })
 
-    # 2. High Temperature Warning (Comfort/Safety but not Fire)
     if temp is not None and temp > 28.0:
         anomalies.append({
             "type": "HIGH_TEMP",
             "message": f"ALERT: High Temperature detected: {temp:.1f} C"
         })
 
-    # (Device map moved to top)
-
-    # Helper to check if a device is "Active" (ON, OPEN)
     def is_active(d_id):
         dev = device_map.get(d_id)
         if not dev: return False
@@ -72,7 +48,6 @@ def analyze():
             return (val == 1.0) or (status == "ON")
         return False
 
-    # 2. Logic: AC + Heater Conflict
     ac_on = is_active("air_conditioner")
     heat_on = is_active("smart_heater_1") or is_active("main_heater")
     
@@ -82,7 +57,6 @@ def analyze():
             "message": "CRITICAL ENERGY WASTE: Air Conditioner and Heater are BOTH ON! Please turn one off."
         })
 
-    # 3. Logic: Windows Open + HVAC On
     open_windows = []
     for d_id, dev in device_map.items():
         if dev.get("type") == "window" and is_active(d_id):

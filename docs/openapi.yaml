@@ -2,44 +2,48 @@ openapi: 3.0.0
 info:
   title: SmartHome IoT Simulator API
   description: API documentation for the SmartHome IoT Simulator microservices.
-  version: 1.0.0
+  version: 2.0.0
 servers:
-  - url: http://localhost:5001
-    description: Data Service
+  - url: http://localhost:5009
+    description: Database Adapter (Device & User Data)
   - url: http://localhost:5002
-    description: Adapter Service (Weather)
+    description: Weather Adapter
   - url: http://localhost:5003
-    description: Business Logic Service (Analytics)
+    description: Anomaly Detection Service
   - url: http://localhost:5004
-    description: Process Service (Dashboard)
+    description: Dashboard Process (Orchestration)
   - url: http://localhost:5005
-    description: Adapter Service (Telegram)
+    description: Telegram Adapter
   - url: http://localhost:5006
-    description: Business Logic Service (Energy Optimizer)
+    description: Energy Optimizer Service
   - url: http://localhost:5010
-    description: Business Logic Service (Auth)
+    description: Auth Service
+  - url: http://localhost:5008
+    description: Web App (UI Layer)
 
 tags:
-  - name: Data Service
-    description: Persistence and retrieval of device data (Port 5001)
+  - name: Database Adapter
+    description: Database operations for devices, readings, settings, and users (Port 5009)
   - name: Weather Adapter
     description: External weather data integration (Port 5002)
   - name: Telegram Adapter
     description: Notification service (Port 5005)
-  - name: Analytics Service
-    description: Anomaly detection (Port 5003)
+  - name: Anomaly Detection
+    description: Anomaly detection service (Port 5003)
   - name: Energy Optimizer
     description: Energy efficiency logic (Port 5006)
   - name: Auth Service
     description: Authentication and token generation (Port 5010)
   - name: Dashboard Process
     description: Orchestration for UI (Port 5004)
+  - name: Web App
+    description: Web UI endpoints (Port 5008)
 
 paths:
-  # --- Data Service ---
+  # --- Database Adapter ---
   /devices:
     get:
-      tags: [Data Service]
+      tags: [Database Adapter]
       summary: Get all devices
       responses:
         '200':
@@ -58,14 +62,17 @@ paths:
                     status:
                       type: string
     post:
-      tags: [Data Service]
-      summary: Register a new device
+      tags: [Database Adapter]
+      summary: Create or register a device
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
+              required:
+                - device_id
+                - type
               properties:
                 device_id:
                   type: string
@@ -73,13 +80,165 @@ paths:
                   type: string
                 status:
                   type: string
+                  default: active
       responses:
         '201':
           description: Device registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  device_id:
+                    type: string
+        '400':
+          description: Missing required fields
+        '500':
+          description: Server error
+
+  /devices/{device_id}:
+    get:
+      tags: [Database Adapter]
+      summary: Get a specific device by ID
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Device details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  type:
+                    type: string
+                  status:
+                    type: string
+        '404':
+          description: Device not found
+    put:
+      tags: [Database Adapter]
+      summary: Update a device
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                status:
+                  type: string
+      responses:
+        '200':
+          description: Device updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updated:
+                    type: object
+        '404':
+          description: Device not found
+        '400':
+          description: No fields to update
+    delete:
+      tags: [Database Adapter]
+      summary: Delete a device
+      parameters:
+        - in: path
+          name: device_id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Device deleted
+        '404':
+          description: Device not found
+
+  /devices/simulate_reading:
+    post:
+      tags: [Database Adapter]
+      summary: Simulate a sensor reading for a device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - device_id
+              properties:
+                device_id:
+                  type: string
+      responses:
+        '200':
+          description: Reading simulated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  value:
+                    type: number
+        '400':
+          description: Missing device_id
 
   /readings:
+    get:
+      tags: [Database Adapter]
+      summary: Get readings with optional filters
+      parameters:
+        - in: query
+          name: device_id
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: List of readings
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    device_id:
+                      type: string
+                    value:
+                      type: number
+                    timestamp:
+                      type: number
     post:
-      tags: [Data Service]
+      tags: [Database Adapter]
       summary: Add a sensor reading
       requestBody:
         required: true
@@ -87,6 +246,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - device_id
+                - value
               properties:
                 device_id:
                   type: string
@@ -97,17 +259,28 @@ paths:
       responses:
         '201':
           description: Reading added
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  reading_id:
+                    type: string
+        '400':
+          description: Missing required fields
 
   /readings/latest:
     get:
-      tags: [Data Service]
+      tags: [Database Adapter]
       summary: Get latest reading for a device
       parameters:
         - in: query
           name: device_id
+          required: true
           schema:
             type: string
-          required: true
       responses:
         '200':
           description: Latest reading
@@ -122,11 +295,34 @@ paths:
                     type: number
                   timestamp:
                     type: number
+                  status:
+                    type: string
+        '400':
+          description: Missing device_id parameter
+        '404':
+          description: No readings found
 
-  /devices/command:
+  /settings:
+    get:
+      tags: [Database Adapter]
+      summary: Get global settings
+      responses:
+        '200':
+          description: Settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                    default: Milan
+                  season_mode:
+                    type: string
+                    default: auto
     post:
-      tags: [Data Service]
-      summary: Send a command to a device
+      tags: [Database Adapter]
+      summary: Update global settings
       requestBody:
         required: true
         content:
@@ -134,13 +330,116 @@ paths:
             schema:
               type: object
               properties:
-                device_id:
+                city:
                   type: string
-                command:
+                season_mode:
                   type: string
       responses:
         '200':
-          description: Command processed
+          description: Settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  updated:
+                    type: object
+
+  /users:
+    post:
+      tags: [Database Adapter]
+      summary: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user_id:
+                    type: string
+        '400':
+          description: Missing fields or password too short
+        '409':
+          description: Username already exists
+
+  /users/{username}:
+    get:
+      tags: [Database Adapter]
+      summary: Get user by username
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                  _id:
+                    type: string
+        '404':
+          description: User not found
+
+  /users/verify_password:
+    post:
+      tags: [Database Adapter]
+      summary: Verify a user's password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Password verification result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  username:
+                    type: string
+        '401':
+          description: Invalid credentials
 
   # --- Weather Adapter ---
   /current_weather:
@@ -167,6 +466,12 @@ paths:
                     type: string
                   city:
                     type: string
+                  cached:
+                    type: boolean
+                  mock:
+                    type: boolean
+        '429':
+          description: Rate limit exceeded
 
   # --- Telegram Adapter ---
   /send_message:
@@ -179,17 +484,32 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - message
               properties:
                 message:
                   type: string
       responses:
         '200':
           description: Message sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  mock:
+                    type: boolean
+        '400':
+          description: Missing message
+        '500':
+          description: Telegram error
 
-  # --- Analytics Service ---
+  # --- Anomaly Detection Service ---
   /analyze:
     post:
-      tags: [Analytics Service]
+      tags: [Anomaly Detection]
       summary: Analyze data for anomalies
       requestBody:
         required: true
@@ -198,10 +518,21 @@ paths:
             schema:
               type: object
               properties:
-                device_type:
-                  type: string
-                value:
+                temp:
                   type: number
+                devices:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      type:
+                        type: string
+                      value:
+                        type: number
+                      status:
+                        type: string
       responses:
         '200':
           description: Analysis result
@@ -210,14 +541,20 @@ paths:
               schema:
                 type: object
                 properties:
-                  has_anomalies:
+                  has_anomaly:
                     type: boolean
                   anomalies:
                     type: array
                     items:
-                      type: string
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: [FIRE, HIGH_TEMP, CONFLICT, WASTE]
+                        message:
+                          type: string
 
-  # --- Energy Optimizer ---
+  # --- Energy Optimizer Service ---
   /optimize_energy:
     post:
       tags: [Energy Optimizer]
@@ -228,6 +565,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - indoor_temp
+                - outdoor_temp
               properties:
                 indoor_temp:
                   type: number
@@ -243,6 +583,7 @@ paths:
                   type: string
                 season_mode:
                   type: string
+                  enum: [auto, summer, winter]
       responses:
         '200':
           description: Optimization advice
@@ -257,12 +598,50 @@ paths:
                     type: boolean
                   efficiency_score:
                     type: number
+                  season:
+                    type: string
+                  windows_open_count:
+                    type: integer
                   details:
                     type: array
                     items:
                       type: string
 
   # --- Auth Service ---
+  /register:
+    post:
+      tags: [Auth Service]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+        '400':
+          description: Missing fields or password too short
+        '409':
+          description: Username already exists
+
   /login:
     post:
       tags: [Auth Service]
@@ -273,6 +652,9 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - username
+                - password
               properties:
                 username:
                   type: string
@@ -288,6 +670,10 @@ paths:
                 properties:
                   token:
                     type: string
+        '400':
+          description: Missing username or password
+        '401':
+          description: Invalid credentials
 
   /verify:
     post:
@@ -299,6 +685,8 @@ paths:
           application/json:
             schema:
               type: object
+              required:
+                - token
               properties:
                 token:
                   type: string
@@ -314,6 +702,10 @@ paths:
                     type: boolean
                   user:
                     type: string
+        '400':
+          description: Missing token
+        '401':
+          description: Token expired or invalid
 
   # --- Dashboard Process ---
   /api/home_status:
@@ -333,6 +725,8 @@ paths:
               schema:
                 type: object
                 properties:
+                  system_status:
+                    type: string
                   data:
                     type: object
                   alerts:
@@ -341,6 +735,134 @@ paths:
                       type: string
                   advice:
                     type: string
+                  action_required:
+                    type: boolean
+                  efficiency_score:
+                    type: number
+                  season:
+                    type: string
+                  season_mode:
+                    type: string
+                  city:
+                    type: string
+
+  /api/login:
+    post:
+      tags: [Dashboard Process]
+      summary: Login proxy endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Login successful
+        '401':
+          description: Invalid credentials
+        '500':
+          description: Auth service unreachable
+
+  /api/register:
+    post:
+      tags: [Dashboard Process]
+      summary: Register proxy endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '201':
+          description: Registration successful
+        '400':
+          description: Invalid input
+        '500':
+          description: Auth service unreachable
+
+  /api/devices:
+    get:
+      tags: [Dashboard Process]
+      summary: Get all devices (proxy)
+      responses:
+        '200':
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+        '500':
+          description: Database adapter unreachable
+
+  /api/devices/command:
+    post:
+      tags: [Dashboard Process]
+      summary: Send command to device (proxy)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - device_id
+                - command
+              properties:
+                device_id:
+                  type: string
+                command:
+                  type: string
+                  enum: [ON, OFF, OPEN, CLOSE, TRIGGER, SAFE]
+      responses:
+        '200':
+          description: Command processed
+        '400':
+          description: Missing fields
+        '401':
+          description: Authentication required
+        '500':
+          description: Database adapter unreachable
+
+  /api/force_refresh:
+    post:
+      tags: [Dashboard Process]
+      summary: Force refresh sensor reading
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: string
+      responses:
+        '200':
+          description: Refresh triggered
+        '500':
+          description: Database adapter unreachable
 
   /settings:
     post:
@@ -355,11 +877,27 @@ paths:
             schema:
               type: object
               properties:
+                city:
+                  type: string
                 season_mode:
                   type: string
+                  enum: [auto, summer, winter]
       responses:
         '200':
           description: Settings updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  settings:
+                    type: object
+        '401':
+          description: Authentication required
+        '500':
+          description: Failed to save settings
 
 components:
   securitySchemes:
