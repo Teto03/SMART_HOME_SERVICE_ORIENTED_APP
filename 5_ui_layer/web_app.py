@@ -5,7 +5,6 @@ import requests
 app = Flask(__name__)
 
 # Process Layer URL
-# Process Layer URL
 DASHBOARD_PROCESS_URL = os.environ.get("DASHBOARD_PROCESS_URL", "http://localhost:5004/api/home_status")
 PROCESS_BASE_URL = os.environ.get("PROCESS_BASE_URL", "http://localhost:5004")
 

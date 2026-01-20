@@ -4,7 +4,6 @@ import time
 import threading
 
 # Service URLs
-# Service URLs
 DATA_SERVICE_URL = os.environ.get("DATA_SERVICE_URL", "http://localhost:5001")
 ANOMALY_SERVICE_URL = os.environ.get("ANOMALY_SERVICE_URL", "http://localhost:5003")
 TELEGRAM_ADAPTER_URL = os.environ.get("TELEGRAM_ADAPTER_URL", "http://localhost:5005")
@@ -26,7 +25,6 @@ def monitor_loop():
     
     while True:
         try:
-            # 1. Orchestration Step A: Fetch Data from Data Service
             devices_data = []
             temp_val = None
             
@@ -36,7 +34,6 @@ def monitor_loop():
                 if res_devices.status_code == 200:
                    devices_list = res_devices.json()
                    
-                   # Hydrate with latest readings
                    for dev in devices_list:
                        d_id = dev.get("id")
                        try: 
@@ -59,7 +56,6 @@ def monitor_loop():
                 time.sleep(2)
                 continue
 
-            # 2. Orchestration Step B: Send Data to Anomaly Detection Service (Business Logic)
             try:
                 payload = {
                     "temp": temp_val,
@@ -75,11 +71,6 @@ def monitor_loop():
                 print(f"Error calling Anomaly Service: {e}")
                 analysis = {"has_anomaly": False, "anomalies": []}
 
-
-            # 3. Orchestration Step C: Process Results & Notify (Telegram Adapter)
-            
-            # --- Device State Change Notifications (Kept local as it's UI/Feedback related, not strict 'anomaly') ---
-            # (Preserving original useful feedback logic)
             for dev in devices_data:
                 d_id = dev.get("id")
                 d_type = dev.get("type")
@@ -99,7 +90,6 @@ def monitor_loop():
                 if last_label and current_label != last_label:
                     print(f"[{d_id}] State Change: {last_label} -> {current_label}")
                     msg = f"INFO: {d_id.replace('_', ' ').title()} is now {current_label}."
-                    # If it turned ON/OPEN, make it look like an alert/notice
                     if is_active:
                         prefix = "SECURITY CHECK:" if d_type == "window" else "ENERGY CHECK:"
                         msg = f"{prefix} {d_id.replace('_', ' ').title()} is {current_label}!"
@@ -111,7 +101,6 @@ def monitor_loop():
                 last_alert_state["devices"][d_id] = current_label
 
 
-            # --- Anomaly Alerts (Driven by Business Service) ---
             current_anomalies = analysis.get("anomalies", [])
             
             # Reset flags for current loop

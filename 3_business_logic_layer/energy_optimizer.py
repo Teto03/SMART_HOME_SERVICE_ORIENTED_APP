@@ -96,7 +96,6 @@ def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> Li
     results = []
     metrics = ctx.window_metrics
     
-    # 1. Seasonal Mismatch Checks
     if season.is_summer and ctx.boiler_status == "ON":
         results.append(EvaluationResult(
             message="Heating is ON during Summer!",
@@ -111,7 +110,6 @@ def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> Li
             efficiency_score=1
         ))
 
-    # 2. Conflict Checks
     if ctx.ac_status == "ON" and ctx.boiler_status == "ON":
         results.append(EvaluationResult(
             message="Heating and Cooling are ON simultaneously!",
@@ -119,7 +117,6 @@ def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> Li
             efficiency_score=1
         ))
 
-    # 3. Window Waste Checks
     if ctx.ac_status == "ON" and metrics.any_open:
         window_count_msg = f"({metrics.count} window{'s' if metrics.count > 1 else ''} open)"
         results.append(EvaluationResult(
@@ -139,18 +136,14 @@ def build_critical_checks(ctx: OptimizationContext, season: SeasonContext) -> Li
 
 
 def evaluate_summer(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
-    # 1. High Indoor Temperature Logic
     if ctx.indoor_temp > 26:
         if ctx.ac_status == "ON":
-             # If windows are open, build_critical_checks catches it.
-             # If windows closed, we are actively cooling.
              return EvaluationResult(
                 message=f"Cooling in progress. Indoor: {ctx.indoor_temp}°C.",
                 should_act=False,
                 efficiency_score=7
             )
         
-        # AC is OFF
         if metrics.any_open:
             if ctx.outdoor_temp > ctx.indoor_temp:
                  return EvaluationResult(
@@ -159,21 +152,18 @@ def evaluate_summer(ctx: OptimizationContext, metrics: WindowMetrics) -> Evaluat
                      efficiency_score=4
                  )
             else:
-                 # Cooler outside, windows open. Natural cooling.
                  return EvaluationResult(
                      message="Natural cooling active (Windows Open). Monitor temperature.",
                      should_act=False,
                      efficiency_score=8
                  )
         else:
-             # Windows Closed, AC Off.
              return EvaluationResult(
                  message="Temperature is too high! Turn on AC.",
                  should_act=True,
                  efficiency_score=5
              )
 
-    # 2. Optimization opportunities (Free Cooling)
     if ctx.indoor_temp > ctx.outdoor_temp and not (metrics.any_open) and ctx.ac_status == "ON":
         return EvaluationResult(
             message="It's cooler outside! Open windows instead of using AC.",
@@ -181,7 +171,6 @@ def evaluate_summer(ctx: OptimizationContext, metrics: WindowMetrics) -> Evaluat
             efficiency_score=6
         )
 
-    # 3. Good State (Windows open for ventilation when not too hot)
     if metrics.any_open and ctx.ac_status != "ON":
         return EvaluationResult(
             message=f"Good! Windows are open for natural ventilation in summer.",
@@ -189,7 +178,6 @@ def evaluate_summer(ctx: OptimizationContext, metrics: WindowMetrics) -> Evaluat
             efficiency_score=9
         )
 
-    # 4. Default Stable
     return EvaluationResult(
         message=f"System stable. Summer mode. Indoor: {ctx.indoor_temp}°C, Outdoor: {ctx.outdoor_temp}°C.",
         should_act=False,
@@ -218,8 +206,6 @@ def evaluate_winter(ctx: OptimizationContext, metrics: WindowMetrics) -> Evaluat
 
 
 def evaluate_mild(ctx: OptimizationContext, metrics: WindowMetrics) -> EvaluationResult:
-    # 1. Ideal Temperature Range Check (20-22°C)
-    # If temp is perfect, ensure we aren't wasting energy.
     if 20.0 <= ctx.indoor_temp <= 22.0:
         if ctx.boiler_status == "ON" or ctx.ac_status == "ON":
             return EvaluationResult(
@@ -234,7 +220,6 @@ def evaluate_mild(ctx: OptimizationContext, metrics: WindowMetrics) -> Evaluatio
                 efficiency_score=10
             )
 
-    # 2. Cooling Opportunity (Too hot inside > 24, Cooler outside)
     if ctx.indoor_temp > 24 and ctx.outdoor_temp < ctx.indoor_temp - 2:
         if not metrics.any_open:
             return EvaluationResult(
@@ -249,7 +234,6 @@ def evaluate_mild(ctx: OptimizationContext, metrics: WindowMetrics) -> Evaluatio
                 efficiency_score=5
              )
 
-    # 3. Warming Opportunity (Too cold inside < 20, Warmer outside but not hot)
     if ctx.indoor_temp < 20 and ctx.outdoor_temp > ctx.indoor_temp + 2 and ctx.outdoor_temp < 25:
         if not metrics.any_open:
             return EvaluationResult(

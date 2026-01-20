@@ -11,12 +11,7 @@ ADAPTER_SERVICE_URL = os.environ.get("ADAPTER_SERVICE_URL", "http://localhost:50
 BUSINESS_SERVICE_URL = os.environ.get("BUSINESS_SERVICE_URL", "http://localhost:5006")
 AUTH_SERVICE_URL = os.environ.get("AUTH_SERVICE_URL", "http://localhost:5010")
 
-# Global settings
-# Global settings (cached, but fetched from DB)
-current_settings = {
-    "city": "Milan",
-    "season_mode": "auto"
-}
+
 
 def require_auth(f):
     from functools import wraps
@@ -104,7 +99,6 @@ def get_home_status():
         "season_mode": current_settings.get("season_mode", "auto")
     }
     
-    # 1. Get Indoor Temp
     indoor_temp = None
     try:
         res = requests.get(f"{DATA_SERVICE_URL}/readings/latest?device_id=temp_sensor_01")
@@ -118,7 +112,6 @@ def get_home_status():
     except:
         response_data["alerts"].append("Data Service unreachable")
 
-    # 2. Get Outdoor Temp
     outdoor_temp = 10
     try:
         res = requests.get(f"{ADAPTER_SERVICE_URL}/current_weather?city={city}")
@@ -132,7 +125,6 @@ def get_home_status():
     except:
         response_data["alerts"].append("Weather Adapter unreachable")
    
-    # 3. Get Energy Advice
     if indoor_temp is not None and outdoor_temp is not None:
         try:
             # Fetch all window states
