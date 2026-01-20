@@ -40,7 +40,7 @@ If you prefer to do it manually or need to modify the keys:
 From the project root folder, run:
 
 ```bash
-docker compose up --build -d
+docker compose up --build --no-attach mongo -d
 ```
 
 Wait a few moments. Docker will download the necessary images and start all 7 microservices.
@@ -89,10 +89,19 @@ Data is not saved to a local file (like `users.db`), but in a **Docker Volume** 
 
 ### Telegram Notifications
 
-If configured, you will receive notifications when:
+If configured, you will receive notifications for:
 
-- The indoor temperature exceeds 28°C.
-- A critical anomaly is detected.
+- **Safety & Security**:
+  - **Fire Alert**: Smoke detected.
+  - **High Temperature**: Indoor temperature > 28°C.
+
+- **Energy Efficiency**:
+  - **Device Conflict**: Heater and AC running simultaneously.
+  - **Energy Waste**: HVAC on with open windows.
+  - **Resolution**: When these issues are resolved.
+
+- **Status Updates**:
+  - **State Changes**: Real-time alerts when any device (window, heater, AC) changes state (ON/OFF/OPEN/CLOSED).
 
 ---
 
